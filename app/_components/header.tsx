@@ -1,25 +1,17 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-
+"use client";
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 export default function ButtonAppBar() {
+
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      {/* AppBar */}
+      <AppBar position="fixed" sx={{ zIndex: 1201 }}>
+        <Toolbar sx={{ minHeight: "56px", padding: "0 16px" }}>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             事業名　と　スローガン的な何か
           </Typography>
