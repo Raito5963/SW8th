@@ -1,23 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { db } from "../../../firebase.config";
+import { db } from "../../../firebase.config"; 
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
 import { TextField, Button, Card, CardContent, Typography, Box, useMediaQuery } from "@mui/material";
-import { Theme } from "@mui/material/styles";
+import { Theme } from "@mui/material/styles"; 
 
 interface Thread {
   id: string;
   title: string;
   description: string;
-  createdAt: Timestamp;
+  createdAt: Timestamp; 
 }
 
 interface Message {
   id: string;
   sender: string;
   content: string;
-  createdAt: Timestamp;
+  createdAt: Timestamp; 
 }
 
 const ThreadDetail = () => {
@@ -26,7 +26,15 @@ const ThreadDetail = () => {
   const [thread, setThread] = useState<Thread | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
-  const [error, setError] = useState<string | null>(null); // 型をstring | nullに変更
+  const [error, setError] = useState<string>(""); // errorの型をstringに変更
+  const [isClient, setIsClient] = useState(false);
+
+  // クライアントサイドでのみ`useMediaQuery`を実行
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const isMobile = isClient && useMediaQuery((theme: Theme) => theme.breakpoints.down('sm')); // クライアントサイドでのみ実行
 
   useEffect(() => {
     if (threadId) {
@@ -74,9 +82,11 @@ const ThreadDetail = () => {
           createdAt: Timestamp.now(),
         });
         setNewMessage("");
-      } catch (error) {
-        if (error instanceof Error) { // 例外の型をErrorに絞る
-          setError("メッセージ送信エラー: " + error.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError("メッセージ送信エラー: " + err.message); // errorの型をErrorにして適切に処理
+        } else {
+          setError("メッセージ送信中にエラーが発生しました");
         }
       }
     }
@@ -99,14 +109,14 @@ const ThreadDetail = () => {
         content: "このスレッドに最初のメッセージです。",
         createdAt: Timestamp.now(),
       });
-    } catch (error) {
-      if (error instanceof Error) { // 例外の型をErrorに絞る
-        setError("スレッド作成エラー: " + error.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError("スレッド作成エラー: " + err.message); // errorの型をErrorにして適切に処理
+      } else {
+        setError("スレッド作成中にエラーが発生しました");
       }
     }
   };
-
-  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   if (!thread) {
     return <Typography>読み込み中...</Typography>;
@@ -149,10 +159,10 @@ const ThreadDetail = () => {
             onChange={(e) => setNewMessage(e.target.value)}
             sx={{ marginBottom: isMobile ? 2 : 0, marginRight: isMobile ? 0 : 2 }}
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSendMessage}
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleSendMessage} 
             sx={{ width: isMobile ? "100%" : "auto" }}
           >
             送信
