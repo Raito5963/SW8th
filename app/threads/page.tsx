@@ -1,10 +1,18 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { db } from "../../firebase.config"; // Firebase設定ファイルのインポート
-import { collection, getDocs } from "firebase/firestore";
-import { Card, CardContent, Typography, Button, Box, useMediaQuery, Theme } from "@mui/material";
+import { collection, getDocs, Timestamp } from "firebase/firestore";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Box,
+  ThemeProvider,
+  createTheme,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
-import { Timestamp } from "firebase/firestore";
 
 interface Thread {
   id: string;
@@ -30,23 +38,49 @@ const ThreadList: React.FC = () => {
     fetchThreads();
   }, []);
 
-  // useMediaQueryを使って、モバイルサイズを判定
-  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
-
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2 }}>
       {threads.map((thread) => (
-        <Card key={thread.id} sx={{ width: isMobile ? '100%' : 600, margin: 2 }}>
+        <Card
+          key={thread.id}
+          sx={{
+            width: "100%",
+            maxWidth: 600, // デスクトップの最大幅
+            margin: 2,
+            "@media (max-width: 600px)": {
+              margin: 1,
+            },
+          }}
+        >
           <CardContent>
-            <Typography variant={isMobile ? "h6" : "h5"}>{thread.title}</Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ marginBottom: 2 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontSize: { xs: "1.25rem", sm: "1.5rem" }, // モバイルとデスクトップでフォントサイズを変更
+              }}
+            >
+              {thread.title}
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{
+                marginBottom: 2,
+                fontSize: { xs: "0.875rem", sm: "1rem" }, // 説明文もレスポンシブ対応
+              }}
+            >
               {thread.description}
             </Typography>
             <Button
               variant="contained"
               color="primary"
               onClick={() => router.push(`/threads/${thread.id}`)}
-              fullWidth={isMobile}
+              sx={{
+                width: "100%",
+                "@media (min-width: 600px)": {
+                  width: "auto",
+                },
+              }}
             >
               詳細を見る
             </Button>
@@ -57,4 +91,15 @@ const ThreadList: React.FC = () => {
   );
 };
 
-export default ThreadList;
+const App = () => {
+  // MUI用テーマの作成
+  const theme = createTheme();
+
+  return (
+    <ThemeProvider theme={theme}>
+      <ThreadList />
+    </ThemeProvider>
+  );
+};
+
+export default App;

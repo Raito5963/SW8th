@@ -3,8 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "../../../firebase.config"; // Firebase設定ファイルのインポート
 import { collection, addDoc } from "firebase/firestore";
-import { TextField, Button, Box, useMediaQuery, Typography } from "@mui/material";
-import { Theme } from "@mui/material/styles"; // Theme型をインポート
+import { TextField, Button, Box, Typography } from "@mui/material";
 
 const CreateThread = () => {
   const router = useRouter();
@@ -34,22 +33,25 @@ const CreateThread = () => {
     setLoading(false);
   };
 
-  // useMediaQueryを使って、モバイルサイズを判定
-  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm')); // Theme型を指定
-
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
         p: 2,
         maxWidth: 600,
-        margin: 'auto',
+        margin: "auto",
         gap: 2,
       }}
     >
-      <Typography variant={isMobile ? "h6" : "h5"} gutterBottom>
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{
+          fontSize: { xs: "1.25rem", sm: "1.5rem" }, // モバイルとデスクトップでフォントサイズを変更
+        }}
+      >
         スレッド作成
       </Typography>
       <TextField
@@ -68,13 +70,20 @@ const CreateThread = () => {
         onChange={(e) => setDescription(e.target.value)}
         margin="normal"
       />
-      <Box sx={{ display: 'flex', gap: 2, flexDirection: isMobile ? 'column' : 'row', width: '100%' }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          flexDirection: { xs: "column", sm: "row" }, // モバイルでは縦並び、デスクトップでは横並び
+          width: "100%",
+        }}
+      >
         <Button
           variant="contained"
           color="primary"
           onClick={handleCreateThread}
           disabled={loading}
-          fullWidth={!isMobile}
+          fullWidth
         >
           スレッドを作成
         </Button>
@@ -82,7 +91,7 @@ const CreateThread = () => {
           variant="contained"
           color="secondary"
           onClick={() => router.push("/threads")}
-          fullWidth={!isMobile}
+          fullWidth
         >
           スレッド一覧へ
         </Button>
