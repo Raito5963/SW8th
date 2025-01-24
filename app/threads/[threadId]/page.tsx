@@ -3,20 +3,21 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation"; // useRouterとuseParamsをインポート
 import { db } from "../../../firebase.config"; // Firebase設定ファイルのインポート
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc } from "firebase/firestore";
-import { TextField, Button, Card, CardContent, Typography, Box } from "@mui/material";
+import { TextField, Button, Card, CardContent, Typography, Box, useMediaQuery } from "@mui/material";
+import { Timestamp } from "firebase/firestore";
 
 interface Thread {
   id: string;
   title: string;
   description: string;
-  createdAt: any;
+  createdAt: Timestamp; // FirestoreのTimestamp型に変更
 }
 
 interface Message {
   id: string;
   sender: string;
   content: string;
-  createdAt: any;
+  createdAt: Timestamp; // FirestoreのTimestamp型に変更
 }
 
 const ThreadDetail = () => {
@@ -52,7 +53,7 @@ const ThreadDetail = () => {
             id: doc.id,
             sender: doc.data().sender,
             content: doc.data().content,
-            createdAt: doc.data().createdAt.toDate(),
+            createdAt: doc.data().createdAt as Timestamp, // FirestoreのTimestamp型に変更
           }));
           setMessages(messagesData);
         });
@@ -101,13 +102,15 @@ const ThreadDetail = () => {
     }
   };
 
+  const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down('sm')); // モバイルサイズの判定
+
   if (!thread) {
     return <Typography>読み込み中...</Typography>;
   }
 
   return (
-    <div>
-      <Card sx={{ margin: 2 }}>
+    <Box sx={{ p: 2, maxWidth: 800, margin: 'auto' }}>
+      <Card sx={{ marginBottom: 2 }}>
         <CardContent>
           <Typography variant="h4">{thread.title}</Typography>
           <Typography variant="body1" color="text.secondary">
@@ -117,45 +120,52 @@ const ThreadDetail = () => {
       </Card>
 
       <div>
-        <Typography variant="h6" sx={{ margin: 2 }}>メッセージ</Typography>
-        <div style={{ height: "300px", overflowY: "scroll", marginBottom: "16px" }}>
+        <Typography variant="h6" sx={{ marginBottom: 2 }}>メッセージ</Typography>
+        <Box sx={{ height: "300px", overflowY: "scroll", marginBottom: "16px" }}>
           {messages.map((message) => (
-            <Card key={message.id} sx={{ margin: 1 }}>
+            <Card key={message.id} sx={{ marginBottom: 1 }}>
               <CardContent>
                 <Typography variant="body2" color="text.primary">
                   {message.sender}: {message.content}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {message.createdAt.toLocaleString()}
+                  {message.createdAt.toDate().toLocaleString()}
                 </Typography>
               </CardContent>
             </Card>
           ))}
-        </div>
+        </Box>
 
-        <Box display="flex" sx={{ padding: 2 }}>
+        <Box display="flex" sx={{ padding: 2, flexDirection: isMobile ? "column" : "row" }}>
           <TextField
             label="メッセージを入力"
             variant="outlined"
             fullWidth
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            sx={{ marginRight: 2 }}
+            sx={{ marginBottom: isMobile ? 2 : 0, marginRight: isMobile ? 0 : 2 }}
           />
-          <Button variant="contained" color="primary" onClick={handleSendMessage}>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleSendMessage} 
+            sx={{ width: isMobile ? "100%" : "auto" }}
+          >
             送信
           </Button>
         </Box>
       </div>
 
-      <Button variant="contained" color="primary" onClick={() => router.push("/threads")}>
-        スレッド一覧へ戻る
-      </Button>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+        <Button variant="contained" color="primary" onClick={() => router.push("/threads")}>
+          スレッド一覧へ戻る
+        </Button>
 
-      <Button variant="contained" color="primary" onClick={handleCreateThread}>
-        新しいスレッドを作成
-      </Button>
-    </div>
+        <Button variant="contained" color="primary" onClick={handleCreateThread}>
+          新しいスレッドを作成
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

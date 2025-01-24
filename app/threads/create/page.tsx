@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "../../../firebase.config"; // Firebase設定ファイルのインポート
 import { collection, addDoc } from "firebase/firestore";
-import { TextField, Button } from "@mui/material";
+import { TextField, Button, Box, useMediaQuery, Typography } from "@mui/material";
 
 const CreateThread = () => {
   const router = useRouter();
@@ -33,8 +33,24 @@ const CreateThread = () => {
     setLoading(false);
   };
 
+  // useMediaQueryを使って、モバイルサイズを判定
+  const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down('sm'));
+
   return (
-    <div>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        p: 2,
+        maxWidth: 600,
+        margin: 'auto',
+        gap: 2,
+      }}
+    >
+      <Typography variant={isMobile ? "h6" : "h5"} gutterBottom>
+        スレッド作成
+      </Typography>
       <TextField
         label="タイトル"
         variant="outlined"
@@ -51,18 +67,26 @@ const CreateThread = () => {
         onChange={(e) => setDescription(e.target.value)}
         margin="normal"
       />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleCreateThread}
-        disabled={loading}
-      >
-        スレッドを作成
-      </Button>
-      <Button variant="contained" color="primary" onClick={() => router.push("/threads")}>
-        スレッド一覧へ
-      </Button>
-    </div>
+      <Box sx={{ display: 'flex', gap: 2, flexDirection: isMobile ? 'column' : 'row', width: '100%' }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleCreateThread}
+          disabled={loading}
+          fullWidth={!isMobile}
+        >
+          スレッドを作成
+        </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => router.push("/threads")}
+          fullWidth={!isMobile}
+        >
+          スレッド一覧へ
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

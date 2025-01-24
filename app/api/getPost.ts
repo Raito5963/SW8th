@@ -29,10 +29,17 @@ export default async function handler(
     });
 
     res.status(200).json(posts);
-  } catch (error: any) {
-    res.status(500).json({
-      error: "Failed to fetch posts",
-      details: error.message,
-    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({
+        error: "Failed to fetch posts",
+        details: error.message,
+      });
+    } else {
+      res.status(500).json({
+        error: "Failed to fetch posts",
+        details: "An unknown error occurred",
+      });
+    }
   }
 }

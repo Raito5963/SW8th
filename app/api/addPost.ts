@@ -36,11 +36,18 @@ export default async function handler(
       } as PostData);
 
       res.status(200).json({ message: "Post added successfully!", id: docRef.id });
-    } catch (error: any) {
-      res.status(500).json({
-        error: "Failed to add post",
-        details: error.message,
-      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({
+          error: "Failed to add post",
+          details: error.message,
+        });
+      } else {
+        res.status(500).json({
+          error: "Failed to add post",
+          details: "An unknown error occurred",
+        });
+      }
     }
   } else {
     res.status(405).json({ error: "Method not allowed" });
