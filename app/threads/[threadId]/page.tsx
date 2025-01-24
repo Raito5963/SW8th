@@ -2,9 +2,9 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation"; // useRouterとuseParamsをインポート
 import { db } from "../../../firebase.config"; // Firebase設定ファイルのインポート
-import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
 import { TextField, Button, Card, CardContent, Typography, Box, useMediaQuery } from "@mui/material";
-import { Timestamp } from "firebase/firestore";
+import { Theme } from "@mui/material/styles"; // Theme型をインポート
 
 interface Thread {
   id: string;
@@ -26,9 +26,9 @@ const ThreadDetail = () => {
   const [thread, setThread] = useState<Thread | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    // threadIdがある場合にスレッドを取得
     if (threadId) {
       const fetchThread = async () => {
         const docRef = doc(db, "threads", threadId as string);
@@ -66,13 +66,17 @@ const ThreadDetail = () => {
 
   const handleSendMessage = async () => {
     if (newMessage.trim() && threadId) {
-      const messageRef = collection(db, "threads", threadId as string, "messages");
-      await addDoc(messageRef, {
-        sender: "User", // ユーザー名を変更できます
-        content: newMessage,
-        createdAt: new Date(),
-      });
-      setNewMessage(""); // メッセージ送信後に入力欄をクリア
+      try {
+        const messageRef = collection(db, "threads", threadId as string, "messages");
+        await addDoc(messageRef, {
+          sender: "User", // ユーザー名を変更できます
+          content: newMessage,
+          createdAt: Timestamp.now(), // FirestoreのTimestampを使用
+        });
+        setNewMessage(""); // メッセージ送信後に入力欄をクリア
+      } catch (error) {
+        setError("メッセージの送信に失敗しました。");
+      }
     }
   };
 
@@ -80,7 +84,7 @@ const ThreadDetail = () => {
     const newThread = {
       title: "新しいスレッド",
       description: "これは新しいスレッドの説明です。",
-      createdAt: new Date(),
+      createdAt: Timestamp.now(), // FirestoreのTimestampを使用
       creator: "User1", // ユーザー名やユーザーIDを使用
     };
 
@@ -89,20 +93,18 @@ const ThreadDetail = () => {
       console.log("スレッドが追加されました:", docRef.id);
 
       // スレッドが作成されたら、サブコレクション「messages」を作成
-      // メッセージの例をサブコレクションに追加
       const messagesRef = collection(db, "threads", docRef.id, "messages");
       await addDoc(messagesRef, {
         sender: "User1",
         content: "このスレッドに最初のメッセージです。",
-        createdAt: new Date(),
+        createdAt: Timestamp.now(), // FirestoreのTimestampを使用
       });
-
     } catch (error) {
       console.error("スレッド追加エラー:", error);
     }
   };
 
-  const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down('sm')); // モバイルサイズの判定
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm')); // モバイルサイズの判定
 
   if (!thread) {
     return <Typography>読み込み中...</Typography>;
@@ -154,6 +156,7 @@ const ThreadDetail = () => {
             送信
           </Button>
         </Box>
+        {error && <Typography color="error">{error}</Typography>}
       </div>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>

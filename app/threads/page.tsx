@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { db } from "../../firebase.config"; // Firebase設定ファイルのインポート
 import { collection, getDocs } from "firebase/firestore";
-import { Card, CardContent, Typography, Button, Box, useMediaQuery } from "@mui/material";
+import { Card, CardContent, Typography, Button, Box, useMediaQuery, Theme } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { Timestamp } from "firebase/firestore";
 
@@ -31,7 +31,7 @@ const ThreadList: React.FC = () => {
   }, []);
 
   // useMediaQueryを使って、モバイルサイズを判定
-  const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2 }}>

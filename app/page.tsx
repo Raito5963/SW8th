@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, User } from "firebase/auth"; // User型をインポート
 import { auth } from "../firebase.config"; // Firebaseの認証設定をインポート
 import { Box, Button, Typography, useMediaQuery } from "@mui/material";
 
 const LoginPage = () => {
-  const [user, setUser] = useState<any>(null); // ユーザー情報を管理
+  const [user, setUser] = useState<User | null>(null); // ユーザー情報をUser型で管理
   const [loading, setLoading] = useState(false); // ローディング状態を管理
 
   const handleLogin = async () => {

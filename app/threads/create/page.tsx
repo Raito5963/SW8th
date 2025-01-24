@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { db } from "../../../firebase.config"; // Firebase設定ファイルのインポート
 import { collection, addDoc } from "firebase/firestore";
 import { TextField, Button, Box, useMediaQuery, Typography } from "@mui/material";
+import { Theme } from "@mui/material/styles"; // Theme型をインポート
 
 const CreateThread = () => {
   const router = useRouter();
@@ -34,7 +35,7 @@ const CreateThread = () => {
   };
 
   // useMediaQueryを使って、モバイルサイズを判定
-  const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm')); // Theme型を指定
 
   return (
     <Box
