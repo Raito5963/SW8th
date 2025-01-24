@@ -9,6 +9,7 @@ import {
   Typography,
   createTheme,
   ThemeProvider,
+  Link,
 } from "@mui/material"; // createThemeとThemeProviderをインポート
 
 // カスタムテーマの作成
@@ -99,6 +100,9 @@ const LoginPage = () => {
             >
               ログイン成功しました。
             </Typography>
+            <Button variant="contained" color="primary" LinkComponent={Link} href="/home" >
+              ホームへ
+            </Button>
           </Box>
         )}
       </Box>
