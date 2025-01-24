@@ -1,37 +1,37 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation"; // useRouterとuseParamsをインポート
-import { db } from "../../../firebase.config"; // Firebase設定ファイルのインポート
+import { useRouter, useParams } from "next/navigation";
+import { db } from "../../../firebase.config";
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
 import { TextField, Button, Card, CardContent, Typography, Box, useMediaQuery } from "@mui/material";
-import { Theme } from "@mui/material/styles"; // Theme型をインポート
+import { Theme } from "@mui/material/styles";
 
 interface Thread {
   id: string;
   title: string;
   description: string;
-  createdAt: Timestamp; // FirestoreのTimestamp型に変更
+  createdAt: Timestamp;
 }
 
 interface Message {
   id: string;
   sender: string;
   content: string;
-  createdAt: Timestamp; // FirestoreのTimestamp型に変更
+  createdAt: Timestamp;
 }
 
 const ThreadDetail = () => {
   const router = useRouter();
-  const { threadId } = useParams(); // useParamsからthreadIdを取得
+  const { threadId } = useParams<{ threadId: string }>(); // 型を指定
   const [thread, setThread] = useState<Thread | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string | null>(null); // 型をstring | nullに変更
 
   useEffect(() => {
     if (threadId) {
       const fetchThread = async () => {
-        const docRef = doc(db, "threads", threadId as string);
+        const docRef = doc(db, "threads", threadId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -40,12 +40,12 @@ const ThreadDetail = () => {
             ...docSnap.data(),
           } as Thread);
         } else {
-          console.log("スレッドが見つかりません");
+          setError("スレッドが見つかりません");
         }
       };
 
       const fetchMessages = () => {
-        const messagesRef = collection(db, "threads", threadId as string, "messages");
+        const messagesRef = collection(db, "threads", threadId, "messages");
         const q = query(messagesRef, orderBy("createdAt", "asc"));
 
         onSnapshot(q, (querySnapshot) => {
@@ -53,29 +53,31 @@ const ThreadDetail = () => {
             id: doc.id,
             sender: doc.data().sender,
             content: doc.data().content,
-            createdAt: doc.data().createdAt as Timestamp, // FirestoreのTimestamp型に変更
+            createdAt: doc.data().createdAt as Timestamp,
           }));
           setMessages(messagesData);
         });
       };
 
-      fetchThread(); // スレッド情報を取得
-      fetchMessages(); // メッセージ情報を取得
+      fetchThread();
+      fetchMessages();
     }
-  }, [threadId]); // threadIdが変わったときに再実行
+  }, [threadId]);
 
   const handleSendMessage = async () => {
     if (newMessage.trim() && threadId) {
       try {
-        const messageRef = collection(db, "threads", threadId as string, "messages");
+        const messageRef = collection(db, "threads", threadId, "messages");
         await addDoc(messageRef, {
-          sender: "User", // ユーザー名を変更できます
+          sender: "User",
           content: newMessage,
-          createdAt: Timestamp.now(), // FirestoreのTimestampを使用
+          createdAt: Timestamp.now(),
         });
-        setNewMessage(""); // メッセージ送信後に入力欄をクリア
+        setNewMessage("");
       } catch (error) {
-        setError("メッセージの送信に失敗しました。");
+        if (error instanceof Error) { // 例外の型をErrorに絞る
+          setError("メッセージ送信エラー: " + error.message);
+        }
       }
     }
   };
@@ -84,27 +86,27 @@ const ThreadDetail = () => {
     const newThread = {
       title: "新しいスレッド",
       description: "これは新しいスレッドの説明です。",
-      createdAt: Timestamp.now(), // FirestoreのTimestampを使用
-      creator: "User1", // ユーザー名やユーザーIDを使用
+      createdAt: Timestamp.now(),
+      creator: "User1",
     };
 
     try {
       const docRef = await addDoc(collection(db, "threads"), newThread);
       console.log("スレッドが追加されました:", docRef.id);
-
-      // スレッドが作成されたら、サブコレクション「messages」を作成
       const messagesRef = collection(db, "threads", docRef.id, "messages");
       await addDoc(messagesRef, {
         sender: "User1",
         content: "このスレッドに最初のメッセージです。",
-        createdAt: Timestamp.now(), // FirestoreのTimestampを使用
+        createdAt: Timestamp.now(),
       });
     } catch (error) {
-      console.error("スレッド追加エラー:", error);
+      if (error instanceof Error) { // 例外の型をErrorに絞る
+        setError("スレッド作成エラー: " + error.message);
+      }
     }
   };
 
-  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm')); // モバイルサイズの判定
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   if (!thread) {
     return <Typography>読み込み中...</Typography>;
@@ -147,10 +149,10 @@ const ThreadDetail = () => {
             onChange={(e) => setNewMessage(e.target.value)}
             sx={{ marginBottom: isMobile ? 2 : 0, marginRight: isMobile ? 0 : 2 }}
           />
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handleSendMessage} 
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSendMessage}
             sx={{ width: isMobile ? "100%" : "auto" }}
           >
             送信

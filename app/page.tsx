@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
-import { GoogleAuthProvider, signInWithPopup, User } from "firebase/auth"; // User型をインポート
+import { GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
+import { FirebaseError } from "firebase/app"; // FirebaseErrorをインポート
 import { auth } from "../firebase.config"; // Firebaseの認証設定をインポート
-import { Box, Button, Typography, useMediaQuery } from "@mui/material";
+import { Box, Button, Typography, useMediaQuery, Theme } from "@mui/material"; // Theme型をインポート
 
 const LoginPage = () => {
   const [user, setUser] = useState<User | null>(null); // ユーザー情報をUser型で管理
@@ -18,7 +19,7 @@ const LoginPage = () => {
       const user = result.user; // ユーザー情報を取得
       setUser(user); // ユーザー情報を状態に保存
     } catch (error) {
-      if ((error as any).code === 'auth/cancelled-popup-request') {
+      if (error instanceof FirebaseError && error.code === 'auth/cancelled-popup-request') {
         console.error("ポップアップがキャンセルされました");
       } else {
         console.error("ログイン中にエラーが発生しました", error);
@@ -29,7 +30,7 @@ const LoginPage = () => {
   };
 
   // useMediaQueryを使って、モバイルサイズを判定
-  const isMobile = useMediaQuery((theme: any) => theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   return (
     <Box 
@@ -58,7 +59,7 @@ const LoginPage = () => {
       ) : (
         <Box sx={{ textAlign: 'center' }}>
           <Typography variant={isMobile ? "h6" : "h5"} gutterBottom>
-            ようこそ、{user.displayName}さん
+            ようこそ、{user.displayName || "ゲスト"}さん
           </Typography>
           <Typography variant="body1" color="text.secondary" gutterBottom>
             Email: {user.email}
