@@ -17,7 +17,7 @@ export default function RootLayout({
         {/* Emotion CacheProvider でラップ */}
         <AppRouterCacheProvider>
           <Header />
-          <main style={{ marginTop: "64px" }}>
+          <main>
             {children}
           </main>
         </AppRouterCacheProvider>

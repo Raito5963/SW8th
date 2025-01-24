@@ -8,7 +8,7 @@ import {
 export default function ButtonAppBar() {
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <Box sx={{ display: "flex", flexDirection: "column" ,height:"5rem" }}>
       {/* AppBar */}
       <AppBar position="fixed" sx={{ zIndex: 1201 }}>
         <Toolbar>
