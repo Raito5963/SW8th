@@ -1,40 +1,31 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { db } from "../../../firebase.config"; 
+import { db } from "../../../firebase.config";
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
-import { TextField, Button, Card, CardContent, Typography, Box, useMediaQuery, ThemeProvider } from "@mui/material";
-import { Theme } from "@mui/material/styles"; 
+import { TextField, Button, Card, CardContent, Typography, Box } from "@mui/material";
 
 interface Thread {
   id: string;
   title: string;
   description: string;
-  createdAt: Timestamp; 
+  createdAt: Timestamp;
 }
 
 interface Message {
   id: string;
   sender: string;
   content: string;
-  createdAt: Timestamp; 
+  createdAt: Timestamp;
 }
 
 const ThreadDetail = () => {
   const router = useRouter();
-  const { threadId } = useParams<{ threadId: string }>(); // 型を指定
+  const { threadId } = useParams<{ threadId: string }>();
   const [thread, setThread] = useState<Thread | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
-  const [error, setError] = useState<string>(""); // errorの型をstringに変更
-  const [isMobile, setIsMobile] = useState(false);
-
-  // `useMediaQuery`の結果を状態として管理
-  const isSmallScreen = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
-
-  useEffect(() => {
-    setIsMobile(isSmallScreen);
-  }, [isSmallScreen]);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     if (threadId) {
@@ -84,36 +75,10 @@ const ThreadDetail = () => {
         setNewMessage("");
       } catch (err: unknown) {
         if (err instanceof Error) {
-          setError("メッセージ送信エラー: " + err.message); // errorの型をErrorにして適切に処理
+          setError("メッセージ送信エラー: " + err.message);
         } else {
           setError("メッセージ送信中にエラーが発生しました");
         }
-      }
-    }
-  };
-
-  const handleCreateThread = async () => {
-    const newThread = {
-      title: "新しいスレッド",
-      description: "これは新しいスレッドの説明です。",
-      createdAt: Timestamp.now(),
-      creator: "User1",
-    };
-
-    try {
-      const docRef = await addDoc(collection(db, "threads"), newThread);
-      console.log("スレッドが追加されました:", docRef.id);
-      const messagesRef = collection(db, "threads", docRef.id, "messages");
-      await addDoc(messagesRef, {
-        sender: "User1",
-        content: "このスレッドに最初のメッセージです。",
-        createdAt: Timestamp.now(),
-      });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError("スレッド作成エラー: " + err.message); // errorの型をErrorにして適切に処理
-      } else {
-        setError("スレッド作成中にエラーが発生しました");
       }
     }
   };
@@ -123,8 +88,7 @@ const ThreadDetail = () => {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-    <Box sx={{ p: 2, maxWidth: 800, margin: 'auto' }}>
+    <Box sx={{ p: 2, maxWidth: 800, margin: "auto" }}>
       <Card sx={{ marginBottom: 2 }}>
         <CardContent>
           <Typography variant="h4">{thread.title}</Typography>
@@ -151,20 +115,20 @@ const ThreadDetail = () => {
           ))}
         </Box>
 
-        <Box display="flex" sx={{ padding: 2, flexDirection: isMobile ? "column" : "row" }}>
+        <Box sx={{ padding: 2, display: "flex", flexDirection: { xs: "column", sm: "row" } }}>
           <TextField
             label="メッセージを入力"
             variant="outlined"
             fullWidth
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            sx={{ marginBottom: isMobile ? 2 : 0, marginRight: isMobile ? 0 : 2 }}
+            sx={{ marginBottom: { xs: 2, sm: 0 }, marginRight: { sm: 2, xs: 0 } }}
           />
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handleSendMessage} 
-            sx={{ width: isMobile ? "100%" : "auto" }}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSendMessage}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
           >
             送信
           </Button>
@@ -172,17 +136,12 @@ const ThreadDetail = () => {
         {error && <Typography color="error">{error}</Typography>}
       </div>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
         <Button variant="contained" color="primary" onClick={() => router.push("/threads")}>
           スレッド一覧へ戻る
         </Button>
-
-        <Button variant="contained" color="primary" onClick={handleCreateThread}>
-          新しいスレッドを作成
-        </Button>
       </Box>
     </Box>
-    </ThemeProvider>
   );
 };
 
