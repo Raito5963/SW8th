@@ -104,7 +104,7 @@ const BlogEditor: React.FC = () => {
       }
     } catch (error) {
       console.error("保存中にエラーが発生しました:", error);
-      alert("保存中にエラーが発生しました。");
+      setError("保存中にエラーが発生しました。");
     } finally {
       setLoading(false);
     }
@@ -135,7 +135,7 @@ const BlogEditor: React.FC = () => {
           } else {
             setError("記事が見つかりませんでした。");
           }
-        } catch (error) {
+        } catch {
           setError("記事の取得に失敗しました。");
         }
       }
@@ -151,6 +151,11 @@ const BlogEditor: React.FC = () => {
   return (
     <Container>
       <Box sx={{ p: 4, maxWidth: "800px", margin: "0 auto" }}>
+        {error && (
+          <Typography color="error" variant="h6" gutterBottom>
+            {error}  {/* Show error message */}
+          </Typography>
+        )}
         {!blog ? (
           <>
             <Typography variant="h4" gutterBottom>
