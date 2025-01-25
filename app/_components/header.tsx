@@ -16,7 +16,7 @@ export default function ButtonAppBar() {
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             <Link href="/" underline="none" color="inherit">
-              <Image src="/gaga.png" width={250} height={50} />
+              <Image src="/gaga.png" alt="Gaga logo" width={250} height={50} />
             </Link>
           </Typography>
         </Toolbar>
