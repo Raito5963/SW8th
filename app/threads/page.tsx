@@ -13,7 +13,7 @@ import {
   createTheme,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-
+import Search from "../_components/Search";
 interface Thread {
   id: string;
   title: string;
@@ -40,6 +40,7 @@ const ThreadList: React.FC = () => {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2 }}>
+      <Search />
       {threads.map((thread) => (
         <Card
           key={thread.id}

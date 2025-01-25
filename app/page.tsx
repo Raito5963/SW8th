@@ -1,113 +1,47 @@
-"use client";
-import { useState } from "react";
-import { GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
-import { FirebaseError } from "firebase/app"; // FirebaseErrorをインポート
-import { auth } from "../firebase.config"; // Firebaseの認証設定をインポート
 import {
-  Box,
-  Button,
-  Typography,
-  createTheme,
-  ThemeProvider,
-  Link,
-} from "@mui/material"; // createThemeとThemeProviderをインポート
+    Button,
+    Container,
+    Typography,
+    Paper,
+    Link,
+    Box,
+} from "@mui/material";
+import Search from "./_components/Search";
 
-// カスタムテーマの作成
-const theme = createTheme();
-
-const LoginPage = () => {
-  const [user, setUser] = useState<User | null>(null); // ユーザー情報をUser型で管理
-  const [loading, setLoading] = useState(false); // ローディング状態を管理
-
-  const handleLogin = async () => {
-    if (loading) return; // すでに処理中の場合は何もしない
-
-    try {
-      setLoading(true); // ローディング開始
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user; // ユーザー情報を取得
-      setUser(user); // ユーザー情報を状態に保存
-    } catch (error) {
-      if (
-        error instanceof FirebaseError &&
-        error.code === "auth/cancelled-popup-request"
-      ) {
-        console.error("ポップアップがキャンセルされました");
-      } else {
-        console.error("ログイン中にエラーが発生しました", error);
-      }
-    } finally {
-      setLoading(false); // ローディング終了
-    }
-  };
-
-  return (
-    <ThemeProvider theme={theme}>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          p: 2,
-          maxWidth: 400,
-          margin: "auto",
-        }}
-      >
-        {!user ? (
-          <Box sx={{ textAlign: "center" }}>
-            <Button
-              onClick={handleLogin}
-              disabled={loading}
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{
-                fontSize: { xs: "0.875rem", sm: "1rem" }, // ボタンのフォントサイズをレスポンシブ対応
-                padding: { xs: "8px", sm: "12px" }, // パディングをデバイスサイズに合わせる
-              }}
-            >
-              {loading ? "ログイン中..." : "Googleでログイン"}
-            </Button>
-          </Box>
-        ) : (
-          <Box sx={{ textAlign: "center" }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontSize: { xs: "1.25rem", sm: "1.5rem" }, // 見出しのフォントサイズをレスポンシブ対応
-              }}
-              gutterBottom
-            >
-              ようこそ、{user.displayName || "ゲスト"}さん
-            </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{
-                fontSize: { xs: "0.875rem", sm: "1rem" }, // テキストのフォントサイズをレスポンシブ対応
-              }}
-              gutterBottom
-            >
-              Email: {user.email}
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                fontSize: { xs: "0.875rem", sm: "1rem" },
-              }}
-            >
-              ログイン成功しました。
-            </Typography>
-            <Button variant="contained" color="primary" LinkComponent={Link} href="/home" >
-              ホームへ
-            </Button>
-          </Box>
-        )}
-      </Box>
-    </ThemeProvider>
-  );
-};
-
-export default LoginPage;
+export default function Home() {
+    return (
+        <Container>
+            <Box>
+                <Link href="/login" underline="none">
+                    ログイン
+                </Link>
+            </Box>
+            <Search />
+            <Box>
+                <Link href="/threads/create" underline="none">
+                    新規スレッド・投稿
+                </Link>
+                <a> | </a>
+                <Link href="/threads" underline="none">
+                    スレッド一覧
+                </Link>
+            </Box>
+            <Box>
+                <Paper elevation={3} style={{ padding: "1rem", marginTop: "1rem" }}>
+                    <Typography variant="h4">新着ブログ</Typography>
+                    <Paper elevation={3} style={{ padding: "1rem", marginTop: "1rem" }}>
+                        //新着順に横スクロール
+                    </Paper>
+                </Paper>
+            </Box>
+            <Box>
+                <Paper elevation={3} style={{ padding: "1rem", marginTop: "1rem" }}>
+                    <Typography variant="h4">最近入室したスレッド</Typography>
+                    <Paper elevation={3} style={{ padding: "1rem", marginTop: "1rem" }}>
+                        //新着順に横スクロール
+                    </Paper>
+                </Paper>
+            </Box>
+        </Container>
+    );
+}
