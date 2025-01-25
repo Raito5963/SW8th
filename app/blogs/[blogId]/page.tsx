@@ -21,8 +21,7 @@ const BlogEditor: React.FC = () => {
   const [editorState, setEditorState] = useState<EditorState | null>(null);
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+  const [error, setError] = useState<string | null>(null); // error state defined here
   interface Blog {
     title: string;
     content: string;
@@ -32,7 +31,6 @@ const BlogEditor: React.FC = () => {
 
   const [blog, setBlog] = useState<Blog | null>(null);
 
-  // エラーハンドリングのための useEffect
   useEffect(() => {
     if (error) {
       alert(error);
