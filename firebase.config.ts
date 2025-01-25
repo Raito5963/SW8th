@@ -8,14 +8,14 @@ import { getAuth } from 'firebase/auth';
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyC7yM9_KwnW_kFbf_zJhLO4zjetqE8J9jY",
-  authDomain: "sw-shizuoka-8.firebaseapp.com",
-  projectId: "sw-shizuoka-8",
-  storageBucket: "sw-shizuoka-8.firebasestorage.app",
-  messagingSenderId: "554020673678",
-  appId: "1:554020673678:web:5a73a450e1bc0802bc11df",
-  measurementId: "G-33XNG3JMWC"
-};
+    apiKey: "AIzaSyC7yM9_KwnW_kFbf_zJhLO4zjetqE8J9jY",
+    authDomain: "sw-shizuoka-8.firebaseapp.com",
+    projectId: "sw-shizuoka-8",
+    storageBucket: "sw-shizuoka-8.firebasestorage.app",
+    messagingSenderId: "554020673678",
+    appId: "1:554020673678:web:5a73a450e1bc0802bc11df",
+    measurementId: "G-33XNG3JMWC"
+  };
 
 // Firebaseアプリを初期化
 const app = initializeApp(firebaseConfig);

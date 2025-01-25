@@ -56,6 +56,14 @@ export default function Home() {
                 <Link href="/threads" underline="none">
                     スレッド一覧
                 </Link>
+                <a> | </a>
+                <Link href="/blogs/create" underline="none">
+                    新規ブログ・投稿
+                </Link>
+                <a> | </a>
+                <Link href="/blogs" underline="none">
+                    ブログ一覧
+                </Link>
             </Box>
 
             <Box>
