@@ -6,6 +6,7 @@ import {
   Typography,
   Link,
 } from "@mui/material";
+import Image from 'next/image';
 export default function ButtonAppBar() {
 
   return (
@@ -15,7 +16,7 @@ export default function ButtonAppBar() {
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             <Link href="/" underline="none" color="inherit">
-              事業名　と　スローガン的な何か
+              <Image src="/gaga.png" width={250} height={50} />
             </Link>
           </Typography>
         </Toolbar>
