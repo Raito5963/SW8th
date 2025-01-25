@@ -21,6 +21,8 @@ const BlogEditor: React.FC = () => {
   const [editorState, setEditorState] = useState<EditorState | null>(null);
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   interface Blog {
     title: string;
     content: string;
@@ -29,6 +31,14 @@ const BlogEditor: React.FC = () => {
   }
 
   const [blog, setBlog] = useState<Blog | null>(null);
+
+  // エラーハンドリングのための useEffect
+  useEffect(() => {
+    if (error) {
+      alert(error);
+      setError(null);
+    }
+  }, [error]);
 
   // クライアントサイドでのみEditorStateを初期化
   useEffect(() => {
@@ -127,7 +137,7 @@ const BlogEditor: React.FC = () => {
           } else {
             setError("記事が見つかりませんでした。");
           }
-        } catch (err) {
+        } catch (error) {
           setError("記事の取得に失敗しました。");
         }
       }
@@ -236,12 +246,3 @@ const BlogEditor: React.FC = () => {
 };
 
 export default BlogEditor;
-const [error, setError] = useState<string | null>(null);
-
-useEffect(() => {
-  if (error) {
-    alert(error);
-    setError(null);
-  }
-}, [error]);
-

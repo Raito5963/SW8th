@@ -1,4 +1,5 @@
 "use client";
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { db } from "../../../firebase.config";
