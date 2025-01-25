@@ -1,14 +1,14 @@
 // profile/page.tsx
 "use client";
-
 import { useState, useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../../firebase.config"; // Firebase 初期化コード
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Button, TextField, CircularProgress } from "@mui/material";
+import Image from "next/image";
 
 export default function ProfilePage() {
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
   const [profile, setProfile] = useState({
     introduction: "",
     hobbies: "",
@@ -63,7 +63,7 @@ export default function ProfilePage() {
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <div className="flex items-center space-x-4">
-        <img
+        <Image
           src={user.photoURL || "/default-avatar.png"}
           alt="User Avatar"
           className="w-16 h-16 rounded-full"
