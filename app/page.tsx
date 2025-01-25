@@ -5,6 +5,7 @@ import { Avatar, Container, Typography, Paper, Link, Box } from "@mui/material";
 import { User, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase.config"; // Firebase の設定をインポート
 import Search from "./_components/Search";
+import Visited from "./_components/visited"; // 最近入室したスレッドのコンポーネントをインポート
 
 export default function Home() {
     const [user, setUser] = useState<User | null>(null);
@@ -70,18 +71,14 @@ export default function Home() {
             <Box>
                 <Paper elevation={3} style={{ padding: "1rem", marginTop: "1rem" }}>
                     <Typography variant="h4">新着ブログ</Typography>
-                    <Paper elevation={3} style={{ padding: "1rem", marginTop: "1rem" }}>
-                        {/* 新着順に横スクロール */}
-                    </Paper>
+                    
                 </Paper>
             </Box>
 
             <Box>
                 <Paper elevation={3} style={{ padding: "1rem", marginTop: "1rem" }}>
                     <Typography variant="h4">最近入室したスレッド</Typography>
-                    <Paper elevation={3} style={{ padding: "1rem", marginTop: "1rem" }}>
-                        {/* 新着順に横スクロール */}
-                    </Paper>
+                    <Visited />
                 </Paper>
             </Box>
         </Container>
