@@ -111,7 +111,7 @@ const LoginPage = () => {
                 variant="contained"
                 color="primary"
                 LinkComponent={Link}
-                href="/home"
+                href="/"
               >
                 ホームへ
               </Button>
