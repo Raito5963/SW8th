@@ -1,13 +1,9 @@
 "use client";
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { db } from "../../../firebase.config";
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
-import { Button, Card, CardContent, Typography, Box } from "@mui/material";
-import { EditorState, RichUtils } from "draft-js";
-import { Editor } from "react-draft-wysiwyg";
-import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css"; // スタイルをインポート
+import { TextField, Button, Card, CardContent, Typography, Box } from "@mui/material";
 
 interface Thread {
   id: string;
@@ -28,7 +24,7 @@ const ThreadDetail = () => {
   const { threadId } = useParams<{ threadId: string }>();
   const [thread, setThread] = useState<Thread | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState<EditorState>(EditorState.createEmpty());
+  const [newMessage, setNewMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -68,15 +64,15 @@ const ThreadDetail = () => {
   }, [threadId]);
 
   const handleSendMessage = async () => {
-    if (newMessage.getCurrentContent().hasText() && threadId) {
+    if (newMessage.trim() && threadId) {
       try {
         const messageRef = collection(db, "threads", threadId, "messages");
         await addDoc(messageRef, {
           sender: "User",
-          content: newMessage.getCurrentContent().getPlainText(),
+          content: newMessage,
           createdAt: Timestamp.now(),
         });
-        setNewMessage(EditorState.createEmpty());
+        setNewMessage("");
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError("メッセージ送信エラー: " + err.message);
@@ -85,15 +81,6 @@ const ThreadDetail = () => {
         }
       }
     }
-  };
-
-  const handleEditorChange = (editorState: EditorState) => {
-    setNewMessage(editorState);
-  };
-
-  const handleStyleToggle = (style: string) => {
-    const newState = RichUtils.toggleInlineStyle(newMessage, style);
-    setNewMessage(newState);
   };
 
   if (!thread) {
@@ -129,32 +116,23 @@ const ThreadDetail = () => {
         </Box>
 
         <Box sx={{ padding: 2, display: "flex", flexDirection: { xs: "column", sm: "row" } }}>
-          <Box sx={{ marginBottom: 2 }}>
-            <Button onClick={() => handleStyleToggle("BOLD")} variant="contained">
-              太字
-            </Button>
-            <Button onClick={() => handleStyleToggle("ITALIC")} variant="contained" sx={{ marginLeft: 1 }}>
-              斜体
-            </Button>
-          </Box>
-
-          <Editor
-            editorState={newMessage}
-            onEditorStateChange={handleEditorChange}
-            toolbarClassName="editor-toolbar"
-            wrapperClassName="editor-wrapper"
-            editorClassName="editor-content"
-            placeholder="メッセージを入力してください..."
+          <TextField
+            label="メッセージを入力"
+            variant="outlined"
+            fullWidth
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            sx={{ marginBottom: { xs: 2, sm: 0 }, marginRight: { sm: 2, xs: 0 } }}
           />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSendMessage}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
+          >
+            送信
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSendMessage}
-        >
-          送信
-        </Button>
-
         {error && <Typography color="error">{error}</Typography>}
       </div>
 
