@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Avatar, Button, Container, Typography, Paper, Link, Box } from "@mui/material";
+import { Avatar, Container, Typography, Paper, Link, Box } from "@mui/material";
 import { User, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase.config"; // Firebase の設定をインポート
 import Search from "./_components/Search";
