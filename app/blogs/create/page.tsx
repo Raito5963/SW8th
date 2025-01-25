@@ -195,6 +195,14 @@ const BlogEditor: React.FC = () => {
           >
             {loading ? "保存中..." : "保存"}
           </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            LinkComponent={"a"}
+            href="/blogs"
+          >
+            ブログ一覧へ
+          </Button>
         </Box>
       </Box>
     </Container>
