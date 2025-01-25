@@ -1,8 +1,9 @@
 "use client";
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import { Editor } from 'react-draft-wysiwyg';
 
 import React, { useState, useEffect } from "react";
 import {
-  Editor,
   EditorState,
   RichUtils,
   convertToRaw,
@@ -20,8 +21,14 @@ const BlogEditor: React.FC = () => {
   const [editorState, setEditorState] = useState<EditorState | null>(null);
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
-  const [blog, setBlog] = useState<any>(null);
-  const [error, setError] = useState<string>("");
+  interface Blog {
+    title: string;
+    content: string;
+    createdAt: Date;
+    contentHTML?: string;
+  }
+
+  const [blog, setBlog] = useState<Blog | null>(null);
 
   // クライアントサイドでのみEditorStateを初期化
   useEffect(() => {
@@ -111,7 +118,12 @@ const BlogEditor: React.FC = () => {
             // ContentStateに変換してHTMLに変換
             const contentState = convertFromRaw(JSON.parse(blogData.content));
             const contentHTML = draftToHtml(convertToRaw(contentState));
-            setBlog({ ...blogData, contentHTML });
+            setBlog({ 
+              title: blogData.title, 
+              content: blogData.content, 
+              createdAt: blogData.createdAt.toDate(), 
+              contentHTML 
+            });
           } else {
             setError("記事が見つかりませんでした。");
           }
@@ -186,7 +198,7 @@ const BlogEditor: React.FC = () => {
               {editorState && (
                 <Editor
                   editorState={editorState}
-                  onChange={handleEditorChange}
+                  onEditorStateChange={handleEditorChange}
                   placeholder="ここにブログ記事を書いてください..."
                 />
               )}
@@ -214,7 +226,7 @@ const BlogEditor: React.FC = () => {
                 minHeight: "300px",
                 padding: "16px",
               }}
-              dangerouslySetInnerHTML={{ __html: blog?.contentHTML }}  // HTMLとして表示
+              dangerouslySetInnerHTML={{ __html: blog?.contentHTML || "" }}  // HTMLとして表示
             />
           </>
         )}
@@ -224,3 +236,12 @@ const BlogEditor: React.FC = () => {
 };
 
 export default BlogEditor;
+const [error, setError] = useState<string | null>(null);
+
+useEffect(() => {
+  if (error) {
+    alert(error);
+    setError(null);
+  }
+}, [error]);
+
