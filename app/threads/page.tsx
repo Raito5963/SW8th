@@ -1,90 +1,94 @@
 "use client";
-
 import { useState, useEffect } from "react";
-import { db } from "../../firebase.config"; // Firebase設定ファイルのインポート
-import { collection, getDocs, Timestamp } from "firebase/firestore";
+import { db } from "../../firebase.config";
+import { collection, getDocs } from "firebase/firestore";
 import {
+  Box,
   Card,
   CardContent,
   Typography,
-  Button,
-  Box,
-  ThemeProvider,
-  createTheme,
+  Divider,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import Search from "../_components/Search";
-interface Thread {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: Timestamp; // FirestoreのTimestamp型に変更
-}
 
 const ThreadList: React.FC = () => {
+  interface Thread {
+    id: string;
+    title: string;
+    description: string;
+    visitedAt: string;
+  }
+  
   const [threads, setThreads] = useState<Thread[]>([]);
+  const [visitedThreads, setVisitedThreads] = useState<Thread[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     const fetchThreads = async () => {
       const querySnapshot = await getDocs(collection(db, "threads"));
-      const threadsData: Thread[] = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Thread[];
-      setThreads(threadsData);
+      setThreads(
+        querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title,
+            description: data.description,
+            visitedAt: "",
+          };
+        })
+      );
     };
 
     fetchThreads();
+
+    // ローカルストレージから訪問履歴を取得
+    const storedVisitedThreads = JSON.parse(localStorage.getItem("visitedThreads") || "[]");
+    setVisitedThreads(storedVisitedThreads);
   }, []);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2 }}>
+    <Box sx={{ p: 2 }}>
       <Search />
+
+      {/* 訪問履歴セクション */}
+      <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+        直近で訪れたスレッド
+      </Typography>
+      {visitedThreads.map((thread) => (
+        <Card
+          key={thread.id}
+          sx={{ mb: 2, cursor: "pointer" }}
+          onClick={() => router.push(`/threads/${thread.id}`)}
+        >
+          <CardContent>
+            <Typography variant="h6">{thread.title}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {thread.description}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              訪問日時: {new Date(thread.visitedAt).toLocaleString()}
+            </Typography>
+          </CardContent>
+        </Card>
+      ))}
+      <Divider sx={{ my: 4 }} />
+
+      {/* スレッド一覧セクション */}
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        スレッド一覧
+      </Typography>
       {threads.map((thread) => (
         <Card
           key={thread.id}
-          sx={{
-            width: "100%",
-            maxWidth: 600, // デスクトップの最大幅
-            margin: 2,
-            "@media (max-width: 600px)": {
-              margin: 1,
-            },
-          }}
+          sx={{ mb: 2 }}
+          onClick={() => router.push(`/threads/${thread.id}`)}
         >
           <CardContent>
-            <Typography
-              variant="h5"
-              sx={{
-                fontSize: { xs: "1.25rem", sm: "1.5rem" }, // モバイルとデスクトップでフォントサイズを変更
-              }}
-            >
-              {thread.title}
-            </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{
-                marginBottom: 2,
-                fontSize: { xs: "0.875rem", sm: "1rem" }, // 説明文もレスポンシブ対応
-              }}
-            >
+            <Typography variant="h6">{thread.title}</Typography>
+            <Typography variant="body2" color="text.secondary">
               {thread.description}
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => router.push(`/threads/${thread.id}`)}
-              sx={{
-                width: "100%",
-                "@media (min-width: 600px)": {
-                  width: "auto",
-                },
-              }}
-            >
-              詳細を見る
-            </Button>
           </CardContent>
         </Card>
       ))}
@@ -92,15 +96,4 @@ const ThreadList: React.FC = () => {
   );
 };
 
-const App = () => {
-  // MUI用テーマの作成
-  const theme = createTheme();
-
-  return (
-    <ThemeProvider theme={theme}>
-      <ThreadList />
-    </ThemeProvider>
-  );
-};
-
-export default App;
+export default ThreadList;

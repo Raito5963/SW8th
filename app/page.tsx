@@ -5,6 +5,7 @@ import { Avatar, Container, Typography, Paper, Link, Box } from "@mui/material";
 import { User, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase.config"; // Firebase の設定をインポート
 import Search from "./_components/Search";
+import Latest from "./_components/latest"; // 最新ブログのコンポーネントをインポート
 import Visited from "./_components/visited"; // 最近入室したスレッドのコンポーネントをインポート
 
 export default function Home() {
@@ -36,7 +37,7 @@ export default function Home() {
                             onClick={() => alert("プロフィールページへのリンクを設定してください")}
                         />
                         <Typography variant="body1">
-                            {user.displayName || "ゲスト"}
+                            <Link href="/[profileId]" > {user.displayName || "ゲスト"}</Link>
                         </Typography>
                     </Box>
                 ) : (
@@ -71,7 +72,7 @@ export default function Home() {
             <Box>
                 <Paper elevation={3} style={{ padding: "1rem", marginTop: "1rem" }}>
                     <Typography variant="h4">新着ブログ</Typography>
-                    
+                    <Latest />
                 </Paper>
             </Box>
 

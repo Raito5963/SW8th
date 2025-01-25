@@ -34,10 +34,19 @@ const ThreadDetail = () => {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          setThread({
+          const threadData = {
             id: docSnap.id,
             ...docSnap.data(),
-          } as Thread);
+          } as Thread;
+          setThread(threadData);
+
+          // ローカルストレージに保存
+          const visitedThreads = JSON.parse(localStorage.getItem("visitedThreads") || "[]");
+          const updatedThreads = [
+            { id: threadData.id, title: threadData.title, description: threadData.description },
+            ...visitedThreads.filter((t: Thread) => t.id !== threadData.id),
+          ].slice(0, 3); // 最大3件まで保存
+          localStorage.setItem("visitedThreads", JSON.stringify(updatedThreads));
         } else {
           setError("スレッドが見つかりません");
         }
