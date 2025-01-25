@@ -14,6 +14,7 @@ import "draft-js/dist/Draft.css";
 import { Button, Box, Typography, TextField, Container } from "@mui/material";
 import { db } from "../../../firebase.config";
 import { collection, addDoc, doc, getDoc } from "firebase/firestore";
+import draftToHtml from "draftjs-to-html";  // draftjs-to-html をインポート
 
 const BlogEditor: React.FC = () => {
   const [editorState, setEditorState] = useState<EditorState | null>(null);
@@ -107,9 +108,10 @@ const BlogEditor: React.FC = () => {
 
           if (blogDoc.exists()) {
             const blogData = blogDoc.data();
-            // ContentStateに変換してプレーンテキストを取得
+            // ContentStateに変換してHTMLに変換
             const contentState = convertFromRaw(JSON.parse(blogData.content));
-            setBlog({ ...blogData, contentText: contentState.getPlainText() });
+            const contentHTML = draftToHtml(convertToRaw(contentState));
+            setBlog({ ...blogData, contentHTML });
           } else {
             setError("記事が見つかりませんでした。");
           }
@@ -205,9 +207,15 @@ const BlogEditor: React.FC = () => {
             <Typography variant="h4" gutterBottom>
               {blog?.title}
             </Typography>
-            <Typography variant="body1" paragraph>
-              {blog?.contentText} {/* プレーンテキストとして表示 */}
-            </Typography>
+            <Box
+              sx={{
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                minHeight: "300px",
+                padding: "16px",
+              }}
+              dangerouslySetInnerHTML={{ __html: blog?.contentHTML }}  // HTMLとして表示
+            />
           </>
         )}
       </Box>

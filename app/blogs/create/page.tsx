@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import {
   Editor,
@@ -35,7 +34,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-export { db, storage };
 // 画像アップロード用の関数（Firebase Storageを使用）
 const uploadImage = async (file: File): Promise<string> => {
   const storageRef = ref(storage, `images/${file.name}`);
@@ -65,6 +63,7 @@ const BlogEditor: React.FC = () => {
     }
   };
 
+  // 画像をエディタに挿入する
   const handleAddImage = (imageUrl: string) => {
     if (editorState) {
       const contentState = editorState.getCurrentContent();
