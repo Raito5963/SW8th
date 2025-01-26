@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { db } from "../../../firebase.config";
+import { db, storage } from "../../../firebase.config";
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { TextField, Button, Card, CardContent, Typography, Box } from "@mui/material";
 
 interface Thread {
@@ -16,6 +17,7 @@ interface Message {
   id: string;
   sender: string;
   content: string;
+  imageUrl?: string;
   createdAt: Timestamp;
 }
 
@@ -25,6 +27,7 @@ const ThreadDetail = () => {
   const [thread, setThread] = useState<Thread | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -40,12 +43,11 @@ const ThreadDetail = () => {
           } as Thread;
           setThread(threadData);
 
-          // ローカルストレージに保存
           const visitedThreads = JSON.parse(localStorage.getItem("visitedThreads") || "[]");
           const updatedThreads = [
             { id: threadData.id, title: threadData.title, description: threadData.description },
             ...visitedThreads.filter((t: Thread) => t.id !== threadData.id),
-          ].slice(0, 3); // 最大3件まで保存
+          ].slice(0, 3);
           localStorage.setItem("visitedThreads", JSON.stringify(updatedThreads));
         } else {
           setError("スレッドが見つかりません");
@@ -61,6 +63,7 @@ const ThreadDetail = () => {
             id: doc.id,
             sender: doc.data().sender,
             content: doc.data().content,
+            imageUrl: doc.data().imageUrl,
             createdAt: doc.data().createdAt as Timestamp,
           }));
           setMessages(messagesData);
@@ -73,15 +76,26 @@ const ThreadDetail = () => {
   }, [threadId]);
 
   const handleSendMessage = async () => {
-    if (newMessage.trim() && threadId) {
+    if (newMessage.trim() || selectedImage) {
       try {
-        const messageRef = collection(db, "threads", threadId, "messages");
+        let imageUrl: string | undefined = undefined;
+
+        if (selectedImage) {
+          const imageRef = ref(storage, `thread-images/${selectedImage.name}`);
+          await uploadBytes(imageRef, selectedImage);
+          imageUrl = await getDownloadURL(imageRef);
+        }
+
+        const messageRef = collection(db, "threads", threadId!, "messages");
         await addDoc(messageRef, {
           sender: "User",
           content: newMessage,
+          imageUrl,
           createdAt: Timestamp.now(),
         });
+
         setNewMessage("");
+        setSelectedImage(null);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError("メッセージ送信エラー: " + err.message);
@@ -116,6 +130,7 @@ const ThreadDetail = () => {
                 <Typography variant="body2" color="text.primary">
                   {message.sender}: {message.content}
                 </Typography>
+                {message.imageUrl && <img src={message.imageUrl} alt="添付画像" style={{ maxWidth: "100%" }} />}
                 <Typography variant="caption" color="text.secondary">
                   {message.createdAt.toDate().toLocaleString()}
                 </Typography>
@@ -132,6 +147,12 @@ const ThreadDetail = () => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             sx={{ marginBottom: { xs: 2, sm: 0 }, marginRight: { sm: 2, xs: 0 } }}
+          />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
+            style={{ marginBottom: 8 }}
           />
           <Button
             variant="contained"
