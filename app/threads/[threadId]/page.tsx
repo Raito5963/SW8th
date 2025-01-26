@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { db, storage } from "../../../firebase.config";
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { TextField, Button, Card, CardContent, Typography, Box } from "@mui/material";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // 画像アップロード用
 
 interface Thread {
   id: string;
@@ -28,6 +28,7 @@ const ThreadDetail = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -78,24 +79,23 @@ const ThreadDetail = () => {
   const handleSendMessage = async () => {
     if (newMessage.trim() || selectedImage) {
       try {
-        let imageUrl: string | undefined = undefined;
-
+        let imageUrl = "";
         if (selectedImage) {
-          const imageRef = ref(storage, `thread-images/${selectedImage.name}`);
-          await uploadBytes(imageRef, selectedImage);
-          imageUrl = await getDownloadURL(imageRef);
+          const storageRef = ref(storage, `messages/${threadId}/${Date.now()}_${selectedImage.name}`);
+          const snapshot = await uploadBytes(storageRef, selectedImage);
+          imageUrl = await getDownloadURL(snapshot.ref);
         }
 
-        const messageRef = collection(db, "threads", threadId!, "messages");
+        const messageRef = collection(db, "threads", threadId, "messages");
         await addDoc(messageRef, {
           sender: "User",
           content: newMessage,
           imageUrl,
           createdAt: Timestamp.now(),
         });
-
         setNewMessage("");
         setSelectedImage(null);
+        setImagePreview(null);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError("メッセージ送信エラー: " + err.message);
@@ -103,6 +103,18 @@ const ThreadDetail = () => {
           setError("メッセージ送信中にエラーが発生しました");
         }
       }
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -130,7 +142,9 @@ const ThreadDetail = () => {
                 <Typography variant="body2" color="text.primary">
                   {message.sender}: {message.content}
                 </Typography>
-                {message.imageUrl && <img src={message.imageUrl} alt="添付画像" style={{ maxWidth: "100%" }} />}
+                {message.imageUrl && (
+                  <img src={message.imageUrl} alt="投稿画像" style={{ width: "100%", marginTop: "8px" }} />
+                )}
                 <Typography variant="caption" color="text.secondary">
                   {message.createdAt.toDate().toLocaleString()}
                 </Typography>
@@ -148,12 +162,6 @@ const ThreadDetail = () => {
             onChange={(e) => setNewMessage(e.target.value)}
             sx={{ marginBottom: { xs: 2, sm: 0 }, marginRight: { sm: 2, xs: 0 } }}
           />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
-            style={{ marginBottom: 8 }}
-          />
           <Button
             variant="contained"
             color="primary"
@@ -163,6 +171,21 @@ const ThreadDetail = () => {
             送信
           </Button>
         </Box>
+
+        <Box>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            style={{ marginBottom: "16px" }}
+          />
+          {imagePreview && (
+            <Box sx={{ marginBottom: "16px" }}>
+              <img src={imagePreview} alt="プレビュー" style={{ width: "100%", maxHeight: "300px", objectFit: "contain" }} />
+            </Box>
+          )}
+        </Box>
+
         {error && <Typography color="error">{error}</Typography>}
       </div>
 
