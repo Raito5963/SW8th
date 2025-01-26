@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../../firebase.config"; // Firebase 初期化コード
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { Button, TextField, CircularProgress } from "@mui/material";
-import Image from "next/image";
+import { Button, TextField, CircularProgress, Avatar } from "@mui/material";
 
 export default function ProfilePage() {
   const [user, loading] = useAuthState(auth);
@@ -63,10 +62,15 @@ export default function ProfilePage() {
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <div className="flex items-center space-x-4">
-        <Image
-          src={user.photoURL || "/default-avatar.png"}
-          alt="User Avatar"
-          className="w-16 h-16 rounded-full"
+        <Avatar
+          src={user.photoURL || undefined}
+          alt={user.displayName || "ゲスト"}
+          sx={{
+            width: 40,
+            height: 40,
+            marginRight: 1,
+            cursor: "pointer",
+          }}
         />
         <div>
           <h1 className="text-xl font-bold">{user.displayName}</h1>
