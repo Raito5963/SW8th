@@ -34,10 +34,10 @@ export default function Home() {
                                 marginRight: 1,
                                 cursor: "pointer",
                             }}
-                            onClick={() => alert("プロフィールページへのリンクを設定してください")}
+                            onClick={() => window.location.href = `/${user.uid}`}
                         />
                         <Typography variant="body1">
-                            <Link href="/[profileId]" > {user.displayName || "ゲスト"}</Link>
+                            <Link href={`/${user.uid}`}>{user.displayName || "ゲスト"}</Link>
                         </Typography>
                     </Box>
                 ) : (
