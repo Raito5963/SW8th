@@ -133,6 +133,13 @@ const ThreadDetail = () => {
     }
   };
 
+  const handleUserProfileClick = () => {
+    if (user) {
+      // ユーザーのプロフィールページに遷移
+      router.push(`/${user.uid}/profile`);
+    }
+  };
+
   if (!thread) {
     return <Typography>読み込み中...</Typography>;
   }
@@ -157,9 +164,9 @@ const ThreadDetail = () => {
             <Card key={message.id} sx={{ marginBottom: 2, borderRadius: 2, boxShadow: 2 }}>
               <CardContent>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Avatar alt={message.sender} src={user?.photoURL || ""} />
-                  <Typography variant="body2" color="text.primary">
-                    {message.sender}: {message.content}
+                  <Avatar alt={message.sender} src={user?.photoURL || ""} onClick={handleUserProfileClick} sx={{ cursor: "pointer" }} />
+                  <Typography variant="body2" color="text.primary" onClick={handleUserProfileClick} sx={{ cursor: "pointer" }}>
+                    {message.sender}
                   </Typography>
                 </Box>
                 {message.imageUrl && (
