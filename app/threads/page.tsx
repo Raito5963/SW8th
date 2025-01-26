@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { db } from "../../firebase.config";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import {
   Box,
   Card,
@@ -18,7 +18,7 @@ const ThreadList: React.FC = () => {
     id: string;
     title: string;
     description: string;
-    visitedAt: string;
+    createdAt: string;
   }
   
   const [threads, setThreads] = useState<Thread[]>([]);
@@ -27,7 +27,9 @@ const ThreadList: React.FC = () => {
 
   useEffect(() => {
     const fetchThreads = async () => {
-      const querySnapshot = await getDocs(collection(db, "threads"));
+      const threadsRef = collection(db, "threads");
+      const q = query(threadsRef, orderBy("createdAt", "desc")); // 投稿日順に並べ替え
+      const querySnapshot = await getDocs(q);
       setThreads(
         querySnapshot.docs.map((doc) => {
           const data = doc.data();
@@ -35,7 +37,7 @@ const ThreadList: React.FC = () => {
             id: doc.id,
             title: data.title,
             description: data.description,
-            visitedAt: "",
+            createdAt: data.createdAt.toDate().toLocaleString(), // 投稿日時を文字列として保存
           };
         })
       );
@@ -76,7 +78,7 @@ const ThreadList: React.FC = () => {
               {thread.description}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              訪問日時: {new Date(thread.visitedAt).toLocaleString()}
+              訪問日時: {new Date(thread.createdAt).toLocaleString()}
             </Typography>
           </CardContent>
         </Card>
@@ -97,6 +99,9 @@ const ThreadList: React.FC = () => {
             <Typography variant="h6">{thread.title}</Typography>
             <Typography variant="body2" color="text.secondary">
               {thread.description}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              投稿日: {thread.createdAt}
             </Typography>
           </CardContent>
         </Card>

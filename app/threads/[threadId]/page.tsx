@@ -1,12 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { db, storage, auth } from "../../../firebase.config"; // authもインポート
+import { db, storage, auth } from "../../../firebase.config";
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
 import { TextField, Button, Card, CardContent, Typography, Box, Input, CircularProgress, Avatar } from "@mui/material";
-import Image from "next/image";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { onAuthStateChanged, User } from "firebase/auth"; // ユーザー情報を取得するために追加
+import { onAuthStateChanged, User } from "firebase/auth";
 
 interface Thread {
   id: string;
@@ -33,19 +32,17 @@ const ThreadDetail = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [user, setUser] = useState<User | null>(null); // ユーザー情報を保持するstate
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // ユーザー情報を取得
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUser(user); // ログインユーザーを設定
+        setUser(user);
       } else {
-        setUser(null); // ログアウトされた場合
+        setUser(null);
       }
     });
 
-    // コンポーネントがアンマウントされるときにunsubscribeする
     return () => unsubscribe();
   }, []);
 
@@ -106,21 +103,25 @@ const ThreadDetail = () => {
     if (newMessage.trim() || selectedImage) {
       setLoading(true);
       try {
+        // メッセージ内のリンクの後にスペースを追加する処理
+        const formattedMessage = newMessage.replace(/(https?:\/\/[^\s]+)/g, "$1 ");
+  
         let imageUrl = "";
         if (selectedImage) {
           const storageRef = ref(storage, `messages/${threadId}/${Date.now()}_${selectedImage.name}`);
           const snapshot = await uploadBytes(storageRef, selectedImage);
-          imageUrl = await getDownloadURL(snapshot.ref);
+          imageUrl = await getDownloadURL(snapshot.ref); // 画像のURLを取得
         }
-
+  
         const messageRef = collection(db, "threads", threadId, "messages");
         await addDoc(messageRef, {
           sender: user?.displayName || "User", // Googleのユーザー名を設定
-          content: newMessage,
-          imageUrl,
+          content: formattedMessage, // フォーマット済みのメッセージを送信
+          imageUrl, // 画像のURLをここに追加
           createdAt: Timestamp.now(),
         });
-
+  
+        // メッセージ送信後のリセット
         setNewMessage("");
         setSelectedImage(null);
         setImagePreview(null);
@@ -136,9 +137,24 @@ const ThreadDetail = () => {
 
   const handleUserProfileClick = () => {
     if (user) {
-      // ユーザーのプロフィールページに遷移
       router.push(`/${user.uid}/profile`);
     }
+  };
+
+  // URLをリンクに変換する関数
+  const extractUrls = (text: string) => {
+    const urlPattern = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlPattern).map((part, index) => {
+      if (urlPattern.test(part)) {
+        return (
+          <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: "blue", textDecoration: "underline" }}>
+            {part}
+          </a>
+        );
+      } else {
+        return part;
+      }
+    });
   };
 
   if (!thread) {
@@ -161,26 +177,35 @@ const ThreadDetail = () => {
       <div>
         <Typography variant="h6" sx={{ marginBottom: 2 }}>メッセージ</Typography>
         <Box sx={{ height: "300px", overflowY: "scroll", marginBottom: "20px" }}>
-          {messages.map((message) => (
-            <Card key={message.id} sx={{ marginBottom: 2, borderRadius: 2, boxShadow: 2 }}>
-              <CardContent>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Avatar alt={message.sender} src={user?.photoURL || ""} onClick={handleUserProfileClick} sx={{ cursor: "pointer" }} />
-                  <Typography variant="body2" color="text.primary" onClick={handleUserProfileClick} sx={{ cursor: "pointer" }}>
-                    {message.sender}
-                  </Typography>
-                </Box>
-                {message.imageUrl && (
-                  <Box sx={{ marginBottom: 2, display: "flex", justifyContent: "center" }}>
-                    <Image src={message.imageUrl} alt="message image" width={500} height={300} style={{ borderRadius: "8px" }} />
+          {messages.length > 0 ? (
+            messages.map((message) => (
+              <Card key={message.id} sx={{ marginBottom: 2, borderRadius: 2, boxShadow: 2 }}>
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Avatar alt={message.sender} src={user?.photoURL || ""} onClick={handleUserProfileClick} sx={{ cursor: "pointer" }} />
+                    <Typography variant="body2" color="text.primary" onClick={handleUserProfileClick} sx={{ cursor: "pointer" }}>
+                      {message.sender}
+                    </Typography>
                   </Box>
-                )}
-                <Typography variant="caption" color="text.secondary" sx={{ marginTop: 1 }}>
-                  {message.createdAt.toDate().toLocaleString()}
-                </Typography>
-              </CardContent>
-            </Card>
-          ))}
+                  {message.content && (
+                    <Typography variant="body1" sx={{ marginTop: 1 }}>
+                      {extractUrls(message.content)}  {/* URLをリンクに変換 */}
+                    </Typography>
+                  )}
+                  {message.imageUrl && (
+                    <Box sx={{ marginBottom: 2, display: "flex", justifyContent: "center" }}>
+                      <img src={message.imageUrl} alt="message image" style={{ width: "100%", borderRadius: "8px" }} />
+                    </Box>
+                  )}
+                  <Typography variant="caption" color="text.secondary" sx={{ marginTop: 1 }}>
+                    {message.createdAt.toDate().toLocaleString()}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Typography>メッセージはありません</Typography>
+          )}
         </Box>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -202,7 +227,7 @@ const ThreadDetail = () => {
           />
           {imagePreview && (
             <Box sx={{ marginBottom: 2, display: "flex", justifyContent: "center" }}>
-              <Image src={imagePreview} alt="preview" width={500} height={300} style={{ borderRadius: "8px" }} />
+              <img src={imagePreview} alt="preview" style={{ width: "100%", borderRadius: "8px" }} />
             </Box>
           )}
           <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>

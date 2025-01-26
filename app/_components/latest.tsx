@@ -3,8 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { db } from "../../firebase.config"; // Firebase設定をインポート
-import { Box, Typography, Paper, CircularProgress } from "@mui/material";
-import Link from "next/link";
+import { Box, Typography, Paper, CircularProgress,Link } from "@mui/material";
 
 interface Blog {
   id: string;
@@ -73,7 +72,7 @@ const LatestBlogs: React.FC = () => {
               gap: 1,
             }}
           >
-            <Link href={`/blogs/${blog.id}`} passHref>
+            <Link href={`/blogs/${blog.id}`}>
               <Typography
                 variant="h6"
                 sx={{
