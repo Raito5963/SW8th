@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../../firebase.config"; // Firebase 初期化コード
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { Button, TextField, CircularProgress, Avatar } from "@mui/material";
+import { Button, TextField, CircularProgress, Avatar, Typography } from "@mui/material";
 
 export default function ProfilePage() {
   const [user, loading] = useAuthState(auth);
@@ -73,7 +73,7 @@ export default function ProfilePage() {
             borderRadius: "50%",
           }}
         />
-        <h1 className="text-xl font-bold inline">{user.displayName}</h1>
+        <Typography >{user.displayName}</Typography>
         <div>
           <p className="text-sm text-gray-500">{user.email}</p>
         </div>
