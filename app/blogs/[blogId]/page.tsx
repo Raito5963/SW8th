@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import {
   convertToRaw,
-  ContentState,
   convertFromRaw,
 } from "draft-js";
 import "draft-js/dist/Draft.css";
