@@ -73,8 +73,8 @@ export default function ProfilePage() {
             borderRadius: "50%",
           }}
         />
+        <h1 className="text-xl font-bold inline">{user.displayName}</h1>
         <div>
-          <h1 className="text-xl font-bold">{user.displayName}</h1>
           <p className="text-sm text-gray-500">{user.email}</p>
         </div>
       </div>
