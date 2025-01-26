@@ -4,8 +4,9 @@ import { useRouter, useParams } from "next/navigation";
 import { db, storage, auth } from "../../../firebase.config"; // authもインポート
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
 import { TextField, Button, Card, CardContent, Typography, Box, Input, CircularProgress, Avatar } from "@mui/material";
+import Image from "next/image";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { onAuthStateChanged } from "firebase/auth"; // ユーザー情報を取得するために追加
+import { onAuthStateChanged, User } from "firebase/auth"; // ユーザー情報を取得するために追加
 
 interface Thread {
   id: string;
@@ -32,7 +33,7 @@ const ThreadDetail = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [user, setUser] = useState<any>(null); // ユーザー情報を保持するstate
+  const [user, setUser] = useState<User | null>(null); // ユーザー情報を保持するstate
 
   useEffect(() => {
     // ユーザー情報を取得
@@ -171,7 +172,7 @@ const ThreadDetail = () => {
                 </Box>
                 {message.imageUrl && (
                   <Box sx={{ marginBottom: 2, display: "flex", justifyContent: "center" }}>
-                    <img src={message.imageUrl} alt="message image" style={{ width: "100%", borderRadius: "8px" }} />
+                    <Image src={message.imageUrl} alt="message image" width={500} height={300} style={{ borderRadius: "8px" }} />
                   </Box>
                 )}
                 <Typography variant="caption" color="text.secondary" sx={{ marginTop: 1 }}>
@@ -201,7 +202,7 @@ const ThreadDetail = () => {
           />
           {imagePreview && (
             <Box sx={{ marginBottom: 2, display: "flex", justifyContent: "center" }}>
-              <img src={imagePreview} alt="preview" style={{ maxWidth: "80%", borderRadius: "8px" }} />
+              <Image src={imagePreview} alt="preview" width={500} height={300} style={{ borderRadius: "8px" }} />
             </Box>
           )}
           <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
