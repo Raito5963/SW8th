@@ -19,6 +19,7 @@ interface Message {
   sender: string;
   content: string;
   imageUrl: string;
+  senderPhotoURL: string;
   createdAt: Timestamp;
 }
 
@@ -73,6 +74,7 @@ const ThreadDetail = () => {
             sender: doc.data().sender,
             content: doc.data().content,
             imageUrl: doc.data().imageUrl || "",
+            senderPhotoURL: doc.data().senderPhotoURL || "",
             createdAt: doc.data().createdAt as Timestamp,
           }));
           setMessages(messagesData);
@@ -105,22 +107,23 @@ const ThreadDetail = () => {
       try {
         // メッセージ内のリンクの後にスペースを追加する処理
         const formattedMessage = newMessage.replace(/(https?:\/\/[^\s]+)/g, "$1 ");
-  
+
         let imageUrl = "";
         if (selectedImage) {
           const storageRef = ref(storage, `messages/${threadId}/${Date.now()}_${selectedImage.name}`);
           const snapshot = await uploadBytes(storageRef, selectedImage);
           imageUrl = await getDownloadURL(snapshot.ref); // 画像のURLを取得
         }
-  
+
         const messageRef = collection(db, "threads", threadId, "messages");
         await addDoc(messageRef, {
-          sender: user?.displayName || "User", // Googleのユーザー名を設定
+          sender: user?.displayName || "User", // ユーザー名を設定
           content: formattedMessage, // フォーマット済みのメッセージを送信
           imageUrl, // 画像のURLをここに追加
+          senderPhotoURL: user?.photoURL || "", // ユーザーのアイコンURLを追加
           createdAt: Timestamp.now(),
         });
-  
+
         // メッセージ送信後のリセット
         setNewMessage("");
         setSelectedImage(null);
@@ -182,7 +185,12 @@ const ThreadDetail = () => {
               <Card key={message.id} sx={{ marginBottom: 2, borderRadius: 2, boxShadow: 2 }}>
                 <CardContent>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Avatar alt={message.sender} src={user?.photoURL || ""} onClick={handleUserProfileClick} sx={{ cursor: "pointer" }} />
+                    <Avatar
+                      alt={message.sender}
+                      src={message.senderPhotoURL || ""} // ユーザーのアイコンURLを表示
+                      onClick={handleUserProfileClick}
+                      sx={{ cursor: "pointer" }}
+                    />
                     <Typography variant="body2" color="text.primary" onClick={handleUserProfileClick} sx={{ cursor: "pointer" }}>
                       {message.sender}
                     </Typography>
@@ -256,12 +264,11 @@ const ThreadDetail = () => {
                 width: "48%",
               }}
             >
-              スレッド一覧へ戻る
+              キャンセル
             </Button>
           </Box>
         </Box>
-
-        {error && <Typography color="error" sx={{ marginTop: 2 }}>{error}</Typography>}
+        {error && <Typography color="error">{error}</Typography>}
       </div>
     </Box>
   );
