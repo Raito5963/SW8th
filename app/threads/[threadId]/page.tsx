@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { db, storage } from "../../../firebase.config";
+import { db, storage, auth } from "../../../firebase.config"; // authもインポート
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
-import { TextField, Button, Card, CardContent, Typography, Box, Input, CircularProgress } from "@mui/material";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";  // storageを追加
+import { TextField, Button, Card, CardContent, Typography, Box, Input, CircularProgress, Avatar } from "@mui/material";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { onAuthStateChanged } from "firebase/auth"; // ユーザー情報を取得するために追加
 
 interface Thread {
   id: string;
@@ -31,6 +32,21 @@ const ThreadDetail = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [user, setUser] = useState<any>(null); // ユーザー情報を保持するstate
+
+  useEffect(() => {
+    // ユーザー情報を取得
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user); // ログインユーザーを設定
+      } else {
+        setUser(null); // ログアウトされた場合
+      }
+    });
+
+    // コンポーネントがアンマウントされるときにunsubscribeする
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (threadId) {
@@ -98,7 +114,7 @@ const ThreadDetail = () => {
 
         const messageRef = collection(db, "threads", threadId, "messages");
         await addDoc(messageRef, {
-          sender: "User",
+          sender: user?.displayName || "User", // Googleのユーザー名を設定
           content: newMessage,
           imageUrl,
           createdAt: Timestamp.now(),
@@ -140,14 +156,17 @@ const ThreadDetail = () => {
           {messages.map((message) => (
             <Card key={message.id} sx={{ marginBottom: 2, borderRadius: 2, boxShadow: 2 }}>
               <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Avatar alt={message.sender} src={user?.photoURL || ""} />
+                  <Typography variant="body2" color="text.primary">
+                    {message.sender}: {message.content}
+                  </Typography>
+                </Box>
                 {message.imageUrl && (
                   <Box sx={{ marginBottom: 2, display: "flex", justifyContent: "center" }}>
                     <img src={message.imageUrl} alt="message image" style={{ width: "100%", borderRadius: "8px" }} />
                   </Box>
                 )}
-                <Typography variant="body2" color="text.primary">
-                  {message.sender}: {message.content}
-                </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ marginTop: 1 }}>
                   {message.createdAt.toDate().toLocaleString()}
                 </Typography>
