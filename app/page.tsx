@@ -7,7 +7,7 @@ import { auth } from "../firebase.config"; // Firebase の設定をインポー�
 import Search from "./_components/Search";
 import Latest from "./_components/latest"; // 最新ブログのコンポーネントをインポート
 import Visited from "./_components/visited"; // 最近入室したスレッドのコンポーネントをインポート
-
+import Latest2 from "./_components/latest2"; // 最近入室したスレッドのコンポーネントをインポート
 export default function Home() {
     const [user, setUser] = useState<User | null>(null);
 
@@ -71,6 +71,13 @@ export default function Home() {
                 <Link href="/blogs" underline="none">
                     ブログ一覧
                 </Link>
+            </Box>
+            
+            <Box>
+                <Paper elevation={3} style={{ padding: "1rem", marginTop: "1rem" }}>
+                    <Typography variant="h4">新着スレッド</Typography>
+                    <Latest2 />
+                </Paper>
             </Box>
 
             <Box>
