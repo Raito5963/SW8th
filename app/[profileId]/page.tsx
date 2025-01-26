@@ -71,6 +71,7 @@ export default function ProfilePage() {
             marginRight: 1,
             cursor: "pointer",
             borderRadius: "50%",
+            objectFit: "cover"
           }}
         />
         <Typography >{user.displayName}</Typography>
