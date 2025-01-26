@@ -66,9 +66,6 @@ const BlogDisplay: React.FC = () => {
         <Typography variant="h4" gutterBottom>
           {blog.title}
         </Typography>
-        <Typography variant="body2" gutterBottom color="text.secondary">
-          投稿日時: {blog.createdAt.toLocaleString()}
-        </Typography>
         <Box
           sx={{
             border: "1px solid #ddd",
