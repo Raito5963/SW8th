@@ -55,6 +55,7 @@ const ThreadList: React.FC = () => {
       <Link href="/threads/create">
         新規スレッド作成
       </Link>
+      <a> | </a>
       <Link href="/">
         トップページへ
       </Link>

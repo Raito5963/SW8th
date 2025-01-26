@@ -59,9 +59,11 @@ const BlogList: React.FC = () => {
       <Link href="/blogs/create">
         新規ブログ作成
       </Link>
+      <a> | </a>
       <Link href="/">
         トップページへ
       </Link>
+      <br />
       {blogs.length === 0 ? (
         <Typography>現在、ブログはありません。</Typography>
       ) : (
