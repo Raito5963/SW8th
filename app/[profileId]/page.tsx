@@ -70,6 +70,7 @@ export default function ProfilePage() {
             height: 40,
             marginRight: 1,
             cursor: "pointer",
+            borderRadius: "50%",
           }}
         />
         <div>
