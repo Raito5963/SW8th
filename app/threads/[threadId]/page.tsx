@@ -6,6 +6,7 @@ import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp 
 import { TextField, Button, Card, CardContent, Typography, Box, Input, CircularProgress, Avatar } from "@mui/material";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { onAuthStateChanged, User } from "firebase/auth";
+import Image from "next/image";
 
 interface Thread {
   id: string;
@@ -202,7 +203,7 @@ const ThreadDetail = () => {
                   )}
                   {message.imageUrl && (
                     <Box sx={{ marginBottom: 2, display: "flex", justifyContent: "center" }}>
-                      <img src={message.imageUrl} alt="message image" style={{ width: "100%", borderRadius: "8px" }} />
+                      <Image src={message.imageUrl} alt="message image" style={{ width: "100%",height:"auto", borderRadius: "8px" }} />
                     </Box>
                   )}
                   <Typography variant="caption" color="text.secondary" sx={{ marginTop: 1 }}>
@@ -235,7 +236,7 @@ const ThreadDetail = () => {
           />
           {imagePreview && (
             <Box sx={{ marginBottom: 2, display: "flex", justifyContent: "center" }}>
-              <img src={imagePreview} alt="preview" style={{ width: "100%", borderRadius: "8px" }} />
+              <Image src={imagePreview} alt="preview" style={{ width: "100%",height:"auto", borderRadius: "8px" }} />
             </Box>
           )}
           <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
