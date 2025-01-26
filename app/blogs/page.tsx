@@ -3,8 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase.config"; // Firebase設定をインポート
-import { Box, Typography, Paper, CircularProgress } from "@mui/material";
-import Link from "next/link";
+import { Box, Typography, Paper, CircularProgress,Link } from "@mui/material";
 
 interface Blog {
   id: string;
@@ -57,6 +56,12 @@ const BlogList: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         ブログ一覧
       </Typography>
+      <Link href="/blogs/create">
+        新規ブログ作成
+      </Link>
+      <Link href="/">
+        トップページへ
+      </Link>
       {blogs.length === 0 ? (
         <Typography>現在、ブログはありません。</Typography>
       ) : (
@@ -72,7 +77,7 @@ const BlogList: React.FC = () => {
               gap: 1,
             }}
           >
-            <Link href={`/blogs/${blog.id}`} passHref>
+            <Link href={`/blogs/${blog.id}`}>
               <Typography
                 variant="h6"
                 sx={{

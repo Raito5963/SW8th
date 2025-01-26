@@ -8,6 +8,7 @@ import {
   CardContent,
   Typography,
   Divider,
+  Link
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import Search from "../_components/Search";
@@ -50,6 +51,13 @@ const ThreadList: React.FC = () => {
   return (
     <Box sx={{ p: 2 }}>
       <Search />
+      <br />
+      <Link href="/threads/create">
+        新規スレッド作成
+      </Link>
+      <Link href="/">
+        トップページへ
+      </Link>
 
       {/* 訪問履歴セクション */}
       <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
