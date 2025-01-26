@@ -141,7 +141,7 @@ const ThreadDetail = () => {
 
   const handleUserProfileClick = () => {
     if (user) {
-      router.push(`/${user.uid}/profile`);
+      router.push(`/${user.uid}`);
     }
   };
 
