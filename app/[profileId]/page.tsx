@@ -1,10 +1,9 @@
-// profile/page.tsx
 "use client";
 import { useState, useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../../firebase.config"; // Firebase 初期化コード
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { Button, TextField, CircularProgress, Avatar, Typography } from "@mui/material";
+import { Button, TextField, CircularProgress, Avatar, Typography, Box } from "@mui/material";
 
 export default function ProfilePage() {
   const [user, loading] = useAuthState(auth);
@@ -60,27 +59,30 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <div className="flex items-center space-x-4">
+    <Box className="p-6 max-w-2xl mx-auto">
+      <Box display="flex" alignItems="center" mb={4}>
         <Avatar
           src={user.photoURL || undefined}
           alt={user.displayName || "ゲスト"}
           sx={{
-            width: 40,
-            height: 40,
-            marginRight: 1,
+            width: 56,
+            height: 56,
+            marginRight: 2,
             cursor: "pointer",
-            borderRadius: "50%",
-            objectFit: "cover"
+            objectFit: "cover",
           }}
         />
-        <Typography >{user.displayName}</Typography>
-        <div>
-          <p className="text-sm text-gray-500">{user.email}</p>
-        </div>
-      </div>
+        <Box>
+          <Typography variant="h6" fontWeight="bold">
+            {user.displayName}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            {user.email}
+          </Typography>
+        </Box>
+      </Box>
 
-      <div className="mt-8 space-y-4">
+      <Box mt={4}>
         <TextField
           label="自己紹介"
           name="introduction"
@@ -89,6 +91,8 @@ export default function ProfilePage() {
           fullWidth
           multiline
           rows={4}
+          variant="outlined"
+          margin="normal"
         />
         <TextField
           label="趣味"
@@ -96,6 +100,8 @@ export default function ProfilePage() {
           value={profile.hobbies}
           onChange={handleInputChange}
           fullWidth
+          variant="outlined"
+          margin="normal"
         />
         <TextField
           label="年齢"
@@ -103,6 +109,8 @@ export default function ProfilePage() {
           value={profile.age}
           onChange={handleInputChange}
           fullWidth
+          variant="outlined"
+          margin="normal"
         />
         <TextField
           label="職業"
@@ -110,16 +118,24 @@ export default function ProfilePage() {
           value={profile.job}
           onChange={handleInputChange}
           fullWidth
+          variant="outlined"
+          margin="normal"
         />
         <Button
           variant="contained"
           color="primary"
           onClick={handleSaveProfile}
           disabled={saving}
+          sx={{
+            marginTop: 2,
+            width: "100%",
+            padding: "12px",
+            fontSize: "16px",
+          }}
         >
           {saving ? "保存中..." : "保存する"}
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
