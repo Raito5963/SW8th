@@ -72,6 +72,9 @@ const BlogEditor: React.FC = () => {
             <Typography variant="h4" gutterBottom>
               {blog.title}
             </Typography>
+            <Typography variant="h4" gutterBottom>
+              {blog.content}
+            </Typography>
             <Link href="/blogs">
               ブログ一覧へ
             </Link>
