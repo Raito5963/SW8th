@@ -2,16 +2,15 @@
 
 import { useState, useEffect, JSX } from "react";
 import { db } from "../../firebase.config"; // Firebase設定ファイルのインポート
-import { collection, getDocs, Timestamp } from "firebase/firestore";
+import { collection, getDocs, Timestamp, query, orderBy } from "firebase/firestore";
 import {
   Card,
   CardContent,
   Typography,
   Button,
   Box,
-  ThemeProvider,
-  createTheme,
   TextField,
+  Link,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 
@@ -22,13 +21,22 @@ interface Thread {
   createdAt: Timestamp; // FirestoreのTimestamp型に変更
 }
 
+interface Blog {
+  id: string;
+  title: string;
+  createdAt: string;
+}
+
 const ThreadList: React.FC = () => {
   const [threads, setThreads] = useState<Thread[]>([]);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
   const [filteredThreads, setFilteredThreads] = useState<Thread[]>([]);
+  const [filteredBlogs, setFilteredBlogs] = useState<Blog[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearching, setIsSearching] = useState<boolean>(false); // 検索中かどうかを管理
   const router = useRouter();
 
+  // スレッドデータを取得
   useEffect(() => {
     const fetchThreads = async () => {
       const querySnapshot = await getDocs(collection(db, "threads"));
@@ -42,22 +50,48 @@ const ThreadList: React.FC = () => {
     fetchThreads();
   }, []);
 
-  // 検索クエリに基づいてフィルタリング
+  // ブログデータを取得
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      const q = query(collection(db, "blogs"), orderBy("createdAt", "desc"));
+      const querySnapshot = await getDocs(q);
+      const fetchedBlogs: Blog[] = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        title: doc.data().title,
+        createdAt: doc.data().createdAt.toDate().toLocaleString(), // 日時フォーマット
+      }));
+      setBlogs(fetchedBlogs);
+    };
+
+    fetchBlogs();
+  }, []);
+
+  // 検索クエリに基づいてスレッドとブログをフィルタリング
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredThreads([]); // 検索クエリが空ならフィルタリング結果をクリア
+      setFilteredBlogs([]);    // 同様にブログもクリア
     } else {
       const lowerCaseQuery = searchQuery.toLowerCase();
-      const filtered = threads.filter((thread) => {
+
+      // スレッドのフィルタリング
+      const filteredThreads = threads.filter((thread) => {
         return (
           thread.title.toLowerCase().includes(lowerCaseQuery) ||
           thread.description.toLowerCase().includes(lowerCaseQuery) ||
           thread.createdAt.toDate().toLocaleDateString().includes(lowerCaseQuery)
         );
       });
-      setFilteredThreads(filtered);
+
+      // ブログのフィルタリング
+      const filteredBlogs = blogs.filter((blog) => {
+        return blog.title.toLowerCase().includes(lowerCaseQuery) || blog.createdAt.includes(lowerCaseQuery);
+      });
+
+      setFilteredThreads(filteredThreads);
+      setFilteredBlogs(filteredBlogs);
     }
-  }, [searchQuery, threads]);
+  }, [searchQuery, threads, blogs]);
 
   // 一致部分をハイライトする関数
   const highlightText = (text: string, query: string): JSX.Element => {
@@ -98,7 +132,7 @@ const ThreadList: React.FC = () => {
         }}
       />
 
-      {/* 検索結果 */}
+      {/* 検索結果 - スレッド */}
       {isSearching && filteredThreads.length > 0 && (
         filteredThreads.map((thread) => (
           <Card
@@ -160,25 +194,49 @@ const ThreadList: React.FC = () => {
         ))
       )}
 
+      {/* 検索結果 - ブログ */}
+      {isSearching && filteredBlogs.length > 0 && (
+        filteredBlogs.map((blog) => (
+          <Card
+            key={blog.id}
+            elevation={3}
+            sx={{
+              p: 2,
+              mb: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              width: "100%",
+              maxWidth: 600,
+            }}
+          >
+            <Link href={`/blogs/${blog.id}`}>
+              <Typography
+                variant="h6"
+                sx={{
+                  cursor: "pointer",
+                  color: "primary.main",
+                  textDecoration: "underline",
+                }}
+              >
+                {highlightText(blog.title, searchQuery)}
+              </Typography>
+            </Link>
+            <Typography variant="body2" color="text.secondary">
+              作成日時: {highlightText(blog.createdAt, searchQuery)}
+            </Typography>
+          </Card>
+        ))
+      )}
+
       {/* 検索結果が見つからない場合の表示 */}
-      {isSearching && searchQuery.trim() && filteredThreads.length === 0 && (
+      {isSearching && searchQuery.trim() && filteredThreads.length === 0 && filteredBlogs.length === 0 && (
         <Typography color="text.secondary" sx={{ mt: 2 }}>
-          該当するスレッドが見つかりませんでした。
+          該当するスレッドやブログが見つかりませんでした。
         </Typography>
       )}
     </Box>
   );
 };
 
-const App = () => {
-  // MUI用テーマの作成
-  const theme = createTheme();
-
-  return (
-    <ThemeProvider theme={theme}>
-      <ThreadList />
-    </ThemeProvider>
-  );
-};
-
-export default App;
+export default ThreadList;

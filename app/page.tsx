@@ -51,6 +51,10 @@ export default function Home() {
             <Search />
 
             <Box>
+                <Link href="/explain" underline="none">
+                    このアプリの使い方はこちら
+                </Link>
+                <Typography variant="h4">メニュー</Typography>
                 <Link href="/threads/create" underline="none">
                     新規スレッド・投稿
                 </Link>
