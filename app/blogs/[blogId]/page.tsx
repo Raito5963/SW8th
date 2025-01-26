@@ -1,9 +1,6 @@
 "use client";
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
-
 import React, { useState, useEffect } from "react";
 import {
-  EditorState,
   convertToRaw,
   ContentState,
   convertFromRaw,
@@ -14,45 +11,44 @@ import { db } from "../../../firebase.config";
 import { doc, getDoc } from "firebase/firestore";
 import draftToHtml from "draftjs-to-html";
 
-const BlogEditor: React.FC = () => {
-  const [editorState, setEditorState] = useState<EditorState | null>(null);
-
-  interface Blog {
+const BlogDisplay: React.FC = () => {
+  const [blog, setBlog] = useState<{
     title: string;
-    content: string;
+    contentHTML: string;
     createdAt: Date;
-    contentHTML?: string;
-  }
+  } | null>(null);
 
-  const [blog, setBlog] = useState<Blog | null>(null);
-
-  // クライアントサイドでのみ EditorState を初期化
-  useEffect(() => {
-    const initialState = EditorState.createWithContent(
-      ContentState.createFromText("")
-    );
-    setEditorState(initialState);
-  }, []);
-
-  // [blogId] で記事を表示
+  // URLから blogId を取得
   const blogId = window.location.pathname.split("/").pop();
 
+  // Firestoreからブログデータを取得
   useEffect(() => {
     const fetchBlog = async () => {
       if (blogId) {
-        const blogDocRef = doc(db, "blogs", blogId);
-        const blogDoc = await getDoc(blogDocRef);
+        try {
+          const blogDocRef = doc(db, "blogs", blogId);
+          const blogDoc = await getDoc(blogDocRef);
 
-        if (blogDoc.exists()) {
-          const blogData = blogDoc.data();
-          const contentState = convertFromRaw(JSON.parse(blogData.content));
-          const contentHTML = draftToHtml(convertToRaw(contentState));
-          setBlog({
-            title: blogData.title,
-            content: blogData.content,
-            createdAt: blogData.createdAt.toDate(),
-            contentHTML,
-          });
+          if (blogDoc.exists()) {
+            const blogData = blogDoc.data();
+
+            // Firestoreから取得した JSON データを ContentState に変換
+            const rawContent = JSON.parse(blogData.content);
+            const contentState = convertFromRaw(rawContent);
+
+            // draftToHtml を使用して HTML に変換
+            const contentHTML = draftToHtml(convertToRaw(contentState));
+
+            setBlog({
+              title: blogData.title || "タイトルなし",
+              contentHTML,
+              createdAt: blogData.createdAt.toDate(),
+            });
+          } else {
+            console.error("ブログが存在しません");
+          }
+        } catch (error) {
+          console.error("データの取得に失敗しました:", error);
         }
       }
     };
@@ -60,38 +56,35 @@ const BlogEditor: React.FC = () => {
     fetchBlog();
   }, [blogId]);
 
-  if (!editorState && !blog) {
-    return null;
+  if (!blog) {
+    return <Typography variant="h6">読み込み中...</Typography>;
   }
 
   return (
     <Container>
       <Box sx={{ p: 4, maxWidth: "800px", margin: "0 auto" }}>
-        {blog && (
-          <>
-            <Typography variant="h4" gutterBottom>
-              {blog.title}
-            </Typography>
-            <Typography variant="h4" gutterBottom>
-              {blog.content}
-            </Typography>
-            <Link href="/blogs">
-              ブログ一覧へ
-            </Link>
-            <Box
-              sx={{
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                minHeight: "300px",
-                padding: "16px",
-              }}
-              dangerouslySetInnerHTML={{ __html: blog.contentHTML || "" }}
-            />
-          </>
-        )}
+        <Typography variant="h4" gutterBottom>
+          {blog.title}
+        </Typography>
+        <Typography variant="body2" gutterBottom color="text.secondary">
+          投稿日時: {blog.createdAt.toLocaleString()}
+        </Typography>
+        <Box
+          sx={{
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            minHeight: "300px",
+            padding: "16px",
+            marginTop: 2,
+          }}
+          dangerouslySetInnerHTML={{ __html: blog.contentHTML }}
+        />
+        <Link href="/blogs" sx={{ display: "block", marginTop: 2 }}>
+          ブログ一覧へ戻る
+        </Link>
       </Box>
     </Container>
   );
 };
 
-export default BlogEditor;
+export default BlogDisplay;
