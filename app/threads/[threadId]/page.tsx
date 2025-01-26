@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { db, storage } from "../../../firebase.config";
 import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, Timestamp } from "firebase/firestore";
-import { TextField, Button, Card, CardContent, Typography, Box } from "@mui/material";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // 画像アップロード用
+import { TextField, Button, Card, CardContent, Typography, Box, Input, CircularProgress } from "@mui/material";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";  // storageを追加
 
 interface Thread {
   id: string;
@@ -17,7 +17,7 @@ interface Message {
   id: string;
   sender: string;
   content: string;
-  imageUrl?: string;
+  imageUrl: string;
   createdAt: Timestamp;
 }
 
@@ -30,6 +30,7 @@ const ThreadDetail = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (threadId) {
@@ -43,13 +44,6 @@ const ThreadDetail = () => {
             ...docSnap.data(),
           } as Thread;
           setThread(threadData);
-
-          const visitedThreads = JSON.parse(localStorage.getItem("visitedThreads") || "[]");
-          const updatedThreads = [
-            { id: threadData.id, title: threadData.title, description: threadData.description },
-            ...visitedThreads.filter((t: Thread) => t.id !== threadData.id),
-          ].slice(0, 3);
-          localStorage.setItem("visitedThreads", JSON.stringify(updatedThreads));
         } else {
           setError("スレッドが見つかりません");
         }
@@ -64,7 +58,7 @@ const ThreadDetail = () => {
             id: doc.id,
             sender: doc.data().sender,
             content: doc.data().content,
-            imageUrl: doc.data().imageUrl,
+            imageUrl: doc.data().imageUrl || "",
             createdAt: doc.data().createdAt as Timestamp,
           }));
           setMessages(messagesData);
@@ -76,8 +70,24 @@ const ThreadDetail = () => {
     }
   }, [threadId]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setSelectedImage(null);
+      setImagePreview(null);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (newMessage.trim() || selectedImage) {
+      setLoading(true);
       try {
         let imageUrl = "";
         if (selectedImage) {
@@ -93,28 +103,17 @@ const ThreadDetail = () => {
           imageUrl,
           createdAt: Timestamp.now(),
         });
+
         setNewMessage("");
         setSelectedImage(null);
         setImagePreview(null);
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError("メッセージ送信エラー: " + err.message);
-        } else {
-          setError("メッセージ送信中にエラーが発生しました");
-        }
+        setError("メッセージ送信エラー: " + (err instanceof Error ? err.message : "不明なエラー"));
+      } finally {
+        setLoading(false);
       }
-    }
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    } else {
+      setError("メッセージまたは画像を入力してください");
     }
   };
 
@@ -123,11 +122,13 @@ const ThreadDetail = () => {
   }
 
   return (
-    <Box sx={{ p: 2, maxWidth: 800, margin: "auto" }}>
-      <Card sx={{ marginBottom: 2 }}>
+    <Box sx={{ p: 3, maxWidth: 900, margin: "auto" }}>
+      <Card sx={{ marginBottom: 3, borderRadius: 2 }}>
         <CardContent>
-          <Typography variant="h4">{thread.title}</Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="h4" gutterBottom>
+            {thread.title}
+          </Typography>
+          <Typography variant="body1" color="text.secondary" paragraph>
             {thread.description}
           </Typography>
         </CardContent>
@@ -135,17 +136,19 @@ const ThreadDetail = () => {
 
       <div>
         <Typography variant="h6" sx={{ marginBottom: 2 }}>メッセージ</Typography>
-        <Box sx={{ height: "300px", overflowY: "scroll", marginBottom: "16px" }}>
+        <Box sx={{ height: "300px", overflowY: "scroll", marginBottom: "20px" }}>
           {messages.map((message) => (
-            <Card key={message.id} sx={{ marginBottom: 1 }}>
+            <Card key={message.id} sx={{ marginBottom: 2, borderRadius: 2, boxShadow: 2 }}>
               <CardContent>
+                {message.imageUrl && (
+                  <Box sx={{ marginBottom: 2, display: "flex", justifyContent: "center" }}>
+                    <img src={message.imageUrl} alt="message image" style={{ width: "100%", borderRadius: "8px" }} />
+                  </Box>
+                )}
                 <Typography variant="body2" color="text.primary">
                   {message.sender}: {message.content}
                 </Typography>
-                {message.imageUrl && (
-                  <img src={message.imageUrl} alt="投稿画像" style={{ width: "100%", marginTop: "8px" }} />
-                )}
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" sx={{ marginTop: 1 }}>
                   {message.createdAt.toDate().toLocaleString()}
                 </Typography>
               </CardContent>
@@ -153,47 +156,61 @@ const ThreadDetail = () => {
           ))}
         </Box>
 
-        <Box sx={{ padding: 2, display: "flex", flexDirection: { xs: "column", sm: "row" } }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
             label="メッセージを入力"
             variant="outlined"
             fullWidth
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            sx={{ marginBottom: { xs: 2, sm: 0 }, marginRight: { sm: 2, xs: 0 } }}
+            sx={{ marginBottom: 2 }}
+            multiline
+            rows={4}
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSendMessage}
-            sx={{ width: { xs: "100%", sm: "auto" } }}
-          >
-            送信
-          </Button>
-        </Box>
-
-        <Box>
-          <input
+          <Input
             type="file"
-            accept="image/*"
+            inputProps={{ accept: "image/*" }}
             onChange={handleImageChange}
-            style={{ marginBottom: "16px" }}
+            sx={{ marginBottom: 2 }}
           />
           {imagePreview && (
-            <Box sx={{ marginBottom: "16px" }}>
-              <img src={imagePreview} alt="プレビュー" style={{ width: "100%", maxHeight: "300px", objectFit: "contain" }} />
+            <Box sx={{ marginBottom: 2, display: "flex", justifyContent: "center" }}>
+              <img src={imagePreview} alt="preview" style={{ maxWidth: "80%", borderRadius: "8px" }} />
             </Box>
           )}
+          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSendMessage}
+              sx={{
+                padding: "10px",
+                borderRadius: "8px",
+                fontWeight: "bold",
+                width: "48%",
+              }}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : "送信"}
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => router.push("/threads")}
+              sx={{
+                padding: "10px",
+                borderRadius: "8px",
+                fontWeight: "bold",
+                width: "48%",
+              }}
+            >
+              スレッド一覧へ戻る
+            </Button>
+          </Box>
         </Box>
 
-        {error && <Typography color="error">{error}</Typography>}
+        {error && <Typography color="error" sx={{ marginTop: 2 }}>{error}</Typography>}
       </div>
-
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-        <Button variant="contained" color="primary" onClick={() => router.push("/threads")}>
-          スレッド一覧へ戻る
-        </Button>
-      </Box>
     </Box>
   );
 };
